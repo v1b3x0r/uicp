@@ -24,7 +24,7 @@ export function registerDrawerDirection(drawer, element, options = {}) {
     return () => {};
   }
   
-  if (!drawer?.isOpen !== undefined) {
+  if (!drawer?.open || !drawer?.close) {
     console.warn('registerDrawerDirection: Invalid drawer instance');
     return () => {};
   }

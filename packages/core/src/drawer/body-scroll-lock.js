@@ -1,42 +1,59 @@
 /**
  * Body scroll lock utilities
  * Prevents layout shift by calculating scrollbar width
+ * - Uses width-based detection (innerWidth - clientWidth)
+ * - Reference-counted to support multiple locks
  */
 
-let scrollLocked = false;
-let scrollbarWidth = 0;
-let originalBodyPaddingRight = '';
+let lockCount = 0;
+let prevOverflow = '';
+let prevPaddingRight = '';
+
+function getScrollbarWidth() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return 0;
+  return Math.max(0, (window.innerWidth || 0) - (document.documentElement?.clientWidth || 0));
+}
 
 /**
  * Lock body scroll and compensate for scrollbar width
  */
 export function lockBodyScroll() {
-  if (typeof document === 'undefined' || scrollLocked) return;
+  if (typeof document === 'undefined') return;
   
+  lockCount += 1;
+  if (lockCount !== 1) return; // only first lock applies styles
+
   const body = document.body;
-  const hasScrollbar = window.innerHeight < body.scrollHeight;
   
-  // Calculate and compensate for scrollbar width
-  if (hasScrollbar) {
-    scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    originalBodyPaddingRight = body.style.paddingRight;
+  // Snapshot current inline styles to restore later
+  prevOverflow = body.style.overflow || '';
+  prevPaddingRight = body.style.paddingRight || '';
+
+  const scrollbarWidth = getScrollbarWidth();
+  if (scrollbarWidth > 0) {
     body.style.paddingRight = `${scrollbarWidth}px`;
   }
-  
   body.style.overflow = 'hidden';
-  scrollLocked = true;
 }
 
 /**
  * Unlock body scroll and restore original padding
  */
 export function unlockBodyScroll() {
-  if (typeof document === 'undefined' || !scrollLocked) return;
+  if (typeof document === 'undefined') return;
   
+  if (lockCount > 0) lockCount -= 1;
+  if (lockCount !== 0) return; // still locked by others
+
   const body = document.body;
-  body.style.overflow = '';
-  body.style.paddingRight = originalBodyPaddingRight;
-  scrollLocked = false;
+  
+  // Restore previous inline styles (not just empty them)
+  body.style.overflow = prevOverflow || '';
+  body.style.paddingRight = prevPaddingRight || '';
+  
+  // Reset trackers
+  prevOverflow = '';
+  prevPaddingRight = '';
 }
 
 /**
@@ -44,5 +61,5 @@ export function unlockBodyScroll() {
  * @returns {boolean}
  */
 export function isScrollLocked() {
-  return scrollLocked;
+  return lockCount > 0;
 }

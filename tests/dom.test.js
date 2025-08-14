@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { createDrawer } from '../packages/core/src/drawer/index.js';
+import { createDrawer } from '@uip/core';
 
 describe('DOM Manipulation', () => {
   let drawer;

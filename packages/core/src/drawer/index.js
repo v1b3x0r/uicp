@@ -48,12 +48,19 @@ export function createDrawer(options = {}) {
   // Event system
   const events = createEventSystem();
   
+  // Instance branding for debugging
+  const instanceId = Math.random().toString(36).substring(2, 9);
+  
   // Add initial change listener
   if (onStateChange) {
     events.onChange(onStateChange);
   }
   
   const api = {
+    // Instance identification for debugging
+    __uip_drawer__: true,
+    __instanceId__: instanceId,
+    
     get isOpen() {
       return isOpen;
     },
@@ -180,14 +187,16 @@ export function createDrawer(options = {}) {
         
         // Setup focus trap
         if (trapFocus) {
-          requestAnimationFrame(() => {
-            focusFirstElement(element);
-            enableFocusTrap(element);
-          });
+          // Mark visible for a11y before focusing
+          element.setAttribute('aria-hidden', 'false');
+          enableFocusTrap(element);
+          // Focus immediately to satisfy environments without RAF timing
+          focusFirstElement(element);
+        } else {
+          element.setAttribute('aria-hidden', 'false');
         }
         
-        // Update ARIA
-        element.setAttribute('aria-hidden', 'false');
+        // Update ARIA done above
       };
       
       const onClose = () => {
@@ -217,7 +226,7 @@ export function createDrawer(options = {}) {
       
       // Subscribe to lifecycle events
       const unsubOpen = api.onOpenStart(onOpen);
-      const unsubClose = api.onCloseEnd(onClose);
+      const unsubClose = api.onCloseStart(onClose);
       
       // Set initial ARIA state
       element.setAttribute('aria-hidden', String(!isOpen));
@@ -231,4 +240,20 @@ export function createDrawer(options = {}) {
   };
   
   return api;
+}
+
+/**
+ * Check if an object is a valid drawer instance
+ * @param {any} drawer 
+ * @returns {boolean}
+ */
+export function isValidDrawerInstance(drawer) {
+  return drawer && 
+         typeof drawer === 'object' &&
+         drawer.__uip_drawer__ === true &&
+         typeof drawer.__instanceId__ === 'string' &&
+         typeof drawer.open === 'function' &&
+         typeof drawer.close === 'function' &&
+         typeof drawer.registerTrigger === 'function' &&
+         typeof drawer.registerContent === 'function';
 }

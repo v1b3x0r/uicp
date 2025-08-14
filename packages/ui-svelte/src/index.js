@@ -25,6 +25,39 @@ export function drawerStore(options = {}) {
 }
 
 /**
+ * Creates a runes-friendly drawer helper - for use with Svelte 5 $state
+ * @param {Object} [options]
+ * @returns {Object}
+ */
+export function createDrawerReactive(options = {}) {
+  const drawer = createDrawer(options);
+  
+  return {
+    // Core state getter (wrap with $state in component)
+    getState: () => drawer.getState(),
+    
+    // Core methods
+    open: drawer.open,
+    close: drawer.close,
+    toggle: drawer.toggle,
+    
+    // Registration methods
+    registerTrigger: drawer.registerTrigger,
+    registerContent: drawer.registerContent,
+    registerDrag: (el, opts) => registerDrawerDrag(drawer, el, opts),
+    
+    // Change listener for reactivity
+    onChange: drawer.onChange,
+    
+    // Direct access to core
+    drawer
+  };
+}
+
+// Legacy alias for compatibility
+export const createDrawerRunes = createDrawerReactive;
+
+/**
  * Svelte action for trigger - lean modern version
  */
 export const drawerTrigger = (node, drawer) => ({

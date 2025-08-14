@@ -10,9 +10,9 @@
 		"prepare": "svelte-kit sync || echo ''"
 	},
 	"dependencies": {
-		"@uip/core": "workspace:*",
-		"@uip/adapter-svelte": "workspace:*",
-		"@uip/plugin-gesture": "workspace:*"
+		"@uip/core": "file:../../packages/core",
+		"@uip/adapter-svelte": "file:../../packages/adapters/svelte",
+		"@uip/plugin-gesture": "file:../../packages/plugins/gesture"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^6.0.0",

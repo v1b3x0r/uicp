@@ -14,11 +14,10 @@
     "build:adapter-vanilla": "cd packages/adapters/vanilla && npm run build",
     "dev:vanilla": "cd examples/vanilla && npm run dev",
     "dev:react": "cd examples/react && npm run dev",
-    "dev:svelte": "cd examples/svelte && npm run dev",
     "dev:svelte5": "cd examples/svelte5 && npm run dev",
     "test": "vitest",
     "size": "size-limit",
-    "clean": "rm -rf packages/*/dist",
+    "clean": "rm -rf packages/core/dist packages/plugins/*/dist packages/adapters/*/dist",
     "release": "npm run build && npm run test && npm run size"
   },
   "workspaces": [

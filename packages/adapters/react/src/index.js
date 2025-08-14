@@ -18,11 +18,8 @@ export function useDrawer(options = {}, plugins = []) {
   
   useEffect(() => {
     if (!drawerRef.current) {
-      // Create drawer with state sync
-      drawerRef.current = createDrawer({
-        ...options,
-        onStateChange: (state) => setIsOpen(state.isOpen)
-      });
+      // Create drawer
+      drawerRef.current = createDrawer(options);
       
       // Apply plugins
       plugins.forEach(plugin => {
@@ -31,12 +28,18 @@ export function useDrawer(options = {}, plugins = []) {
         }
       });
       
+      // Set initial state and sync changes
       setIsOpen(drawerRef.current.isOpen);
+      
+      // Subscribe to state changes
+      const unsubscribe = drawerRef.current.onChange((state) => {
+        setIsOpen(state.isOpen);
+      });
+      
+      return unsubscribe;
     }
     
-    return () => {
-      // Cleanup is handled by drawer registration methods
-    };
+    return () => {};
   }, []); // Empty deps - drawer created once
   
   const drawer = drawerRef.current;

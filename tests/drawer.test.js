@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createDrawer } from '../packages/ui-core/src/drawer.js';
+import { createDrawer } from '../packages/core/src/drawer/index.js';
 
 describe('Drawer', () => {
   let drawer;

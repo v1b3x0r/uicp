@@ -140,5 +140,32 @@ export function toggleAttribute(element, drawer, attribute = 'data-open') {
   return drawer.onChange(update);
 }
 
+/**
+ * Legacy setupDrawer with options object (for backwards compatibility)
+ * @param {Object} config - Configuration object
+ * @param {HTMLElement} config.trigger - Trigger element
+ * @param {HTMLElement} config.content - Content element
+ * @param {Object} [config.dragOptions] - Drag options
+ * @returns {Object} Drawer instance
+ */
+export function setupDrawer({ trigger, content, dragOptions = {} }) {
+  const plugins = [];
+  
+  // Create gesture plugin if dragOptions provided
+  if (dragOptions && Object.keys(dragOptions).length > 0) {
+    // For now, create a simple plugin-like structure
+    // In real implementation, would use @uip/plugin-gesture
+    plugins.push({
+      register: (drawer, element) => {
+        // Simple drag implementation would go here
+        // For demo purposes, just return empty cleanup
+        return () => {};
+      }
+    });
+  }
+  
+  return createDOMDrawer(trigger, content, {}, plugins);
+}
+
 // Re-export core for convenience
 export { createDrawer } from '@uip/core';

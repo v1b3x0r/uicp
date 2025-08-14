@@ -7,7 +7,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   resolve: {
     alias: {
-      '@uikit/core': resolve(__dirname, '../../packages/ui-core/dist/index.js'),
+      '@uip/core': resolve(__dirname, '../../packages/core/src/index.js'),
+      '@uip/adapter-vanilla': resolve(__dirname, '../../packages/adapters/vanilla/src/index.js'),
+      '@uip/plugin-gesture': resolve(__dirname, '../../packages/plugins/gesture/src/index.js')
     }
   },
   server: {
@@ -15,8 +17,5 @@ export default defineConfig({
     fs: {
       allow: ['../..']
     }
-  },
-  optimizeDeps: {
-    include: ['@uikit/core']
   }
 });

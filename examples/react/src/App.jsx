@@ -1,27 +1,35 @@
-import React from 'react';
-import DrawerDemo from './components/DrawerDemo';
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
 
 function App() {
+  const [count, setCount] = useState(0)
+
   return (
-    <div className="container">
-      <h1>UIKit React Example</h1>
-      <DrawerDemo />
-      
-      <div className="demo-content">
-        <h2>Scrollable Content</h2>
-        <p>Try opening a drawer and notice that the body scroll is locked.</p>
-        <p>The drawer can be closed by:</p>
-        <ul>
-          <li>Clicking the close button</li>
-          <li>Pressing ESC key</li>
-          <li>Clicking the overlay</li>
-          <li>Dragging/swiping (on touch devices)</li>
-        </ul>
-        <br />
-        <p>This is a longer content area to demonstrate scroll locking behavior...</p>
+    <>
+      <div>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
       </div>
-    </div>
-  );
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.jsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
+  )
 }
 
-export default App;
+export default App

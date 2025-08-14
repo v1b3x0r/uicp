@@ -1,0 +1,35 @@
+{
+  "name": "@uip/plugin-position",
+  "version": "2.0.0",
+  "description": "Universal positioning plugin for UI primitives",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsup src/index.js --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.js --format cjs,esm --dts --watch"
+  },
+  "keywords": [
+    "ui",
+    "position",
+    "placement",
+    "auto-position",
+    "drawer",
+    "modal",
+    "tooltip",
+    "popover",
+    "menu"
+  ],
+  "author": "UI Protocol Team",
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.0.0"
+  },
+  "peerDependencies": {
+    "@uip/core": "^2.0.0"
+  }
+}

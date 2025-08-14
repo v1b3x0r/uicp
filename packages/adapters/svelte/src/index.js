@@ -1,129 +1,169 @@
 /**
- * @uip/adapter-svelte - Svelte Universal UI Protocol
- * Generic adapter for any UIP primitive with Svelte reactivity
+ * @uip/adapter-svelte – Svelte adapter (generic, scalable)
+ * Pattern: one generic factory + per-primitive aliases
  */
 
-import { writable } from 'svelte/store';
-import { createDrawer } from '@uip/core';
+import { writable } from 'svelte/store'
 
+// --- import core creators (มีอะไรก็ import อันนั้น) ---
+import {
+  createDrawer,
+  createModal,
+  createTooltip,
+  createPopover,
+  createMenu,
+} from '@uip/core'
+
+// ---------------------------
+// Generic store (เขียนครั้งเดียว)
+// ---------------------------
 /**
- * Generic factory for any UIP primitive store
- * @param {Object} corePrimitive - Core primitive instance
- * @returns {Object} Svelte store with primitive methods
+ * Create a Svelte store that mirrors a UIP core primitive.
+ * @param {Object} core - core primitive instance
+ * @returns {Object} Svelte store + pass-through methods
  */
-export function createPrimitiveStore(corePrimitive) {
-  if (!corePrimitive) throw new Error('core primitive instance required');
-  
-  const { subscribe, set } = writable(corePrimitive.getState());
-  const unsubscribe = corePrimitive.onChange(set);
-  
+export function createPrimitiveStore(core) {
+  if (!core) throw new Error('core primitive required')
+
+  const { subscribe, set } = writable(core.getState())
+  const unsub = core.onChange(set)
+
   return {
     subscribe,
-    // Pass-through core methods
-    ...corePrimitive,
-    destroy: unsubscribe
-  };
+    ...core,
+    destroy: () => {
+      unsub()
+      core.destroy?.()
+    },
+  }
+}
+
+// ---------------------------
+// Generic actions (เขียนครั้งเดียว)
+// ---------------------------
+function warnNoop(name) {
+  console.warn(`${name}: invalid or unavailable instance`)
+  return { destroy: () => {} }
 }
 
 /**
- * Create drawer store (alias for drawer primitive)
- * @param {Object} [options] - Drawer options
- * @param {Array} [plugins] - Plugins to apply
- * @returns {Object} Drawer store
+ * Create a Svelte action bound to a core method that takes (node, options?)
+ * e.g. registerTrigger, registerContent
+ * @param {('registerTrigger'|'registerContent')} method
+ * @param {boolean} passOptions - pass params.options to method
  */
+function createAction(method, passOptions = false) {
+  return (node, params) => {
+    let core = params?.drawer || params
+    if (!core?.[method]) return warnNoop(method)
+
+    let dispose = passOptions
+      ? core[method](node, params?.options || {})
+      : core[method](node)
+
+    return {
+      update(newParams) {
+        const next = newParams?.drawer || newParams
+        if (next === core) return
+        dispose()
+        core = next
+        dispose = passOptions
+          ? core[method](node, newParams?.options || {})
+          : core[method](node)
+      },
+      destroy() {
+        dispose()
+      },
+    }
+  }
+}
+
+/**
+ * Create a Svelte action for auto-scan style APIs (if the core exposes it).
+ * SSR-safe; no-op if unavailable.
+ */
+function createScanAction() {
+  return (node, params) => {
+    if (typeof document === 'undefined') return warnNoop('scan')
+    let core = params?.drawer || params
+    if (!core?.autoScan) return warnNoop('scan')
+
+    let dispose = core.autoScan(node)
+    return {
+      update(newParams) {
+        const next = newParams?.drawer || newParams
+        if (next === core) return
+        dispose()
+        core = next
+        dispose = core.autoScan(node)
+      },
+      destroy() {
+        dispose()
+      },
+    }
+  }
+}
+
+// ---------------------------
+// Drawer aliases
+// ---------------------------
+/** @param {Object} [options] @param {Array} [plugins] */
 export function createDrawerStore(options = {}, plugins = []) {
-  return createPrimitiveStore(createDrawer(options, plugins));
+  return createPrimitiveStore(createDrawer(options, plugins))
 }
+export const drawerTrigger = createAction('registerTrigger', false)
+export const drawerContent = createAction('registerContent', true)
+export const drawerScan = createScanAction()
 
-/**
- * Svelte action for drawer triggers
- * @param {HTMLElement} node - Trigger element  
- * @param {Object} params - { drawer } or drawer instance
- * @returns {Object} Svelte action
- */
-export function drawerTrigger(node, params) {
-  let core = params?.drawer || params;
-  if (!core?.registerTrigger) {
-    console.warn('drawerTrigger: invalid drawer instance');
-    return { destroy: () => {} };
-  }
-  
-  let dispose = core.registerTrigger(node);
-  
-  return {
-    update(newParams) {
-      const next = newParams?.drawer || newParams;
-      if (next === core) return; // Skip if same instance
-      
-      dispose();
-      core = next;
-      dispose = core.registerTrigger(node);
-    },
-    destroy() {
-      dispose();
-    }
-  };
+// ---------------------------
+// Modal aliases
+// ---------------------------
+/** @param {Object} [options] @param {Array} [plugins] */
+export function createModalStore(options = {}, plugins = []) {
+  return createPrimitiveStore(createModal(options, plugins))
 }
+export const modalTrigger = createAction('registerTrigger', false)
+export const modalContent = createAction('registerContent', true)
+export const modalScan = createScanAction()
 
-/**
- * Svelte action for drawer content
- * @param {HTMLElement} node - Content element
- * @param {Object} params - { drawer, options }
- * @returns {Object} Svelte action  
- */
-export function drawerContent(node, params) {
-  let core = params?.drawer || params;
-  if (!core?.registerContent) {
-    console.warn('drawerContent: invalid drawer instance');
-    return { destroy: () => {} };
-  }
-  
-  let dispose = core.registerContent(node, params.options || {});
-  
-  return {
-    update(newParams) {
-      const next = newParams?.drawer || newParams;
-      if (next === core) return; // Skip if same instance
-      
-      dispose();
-      core = next;
-      dispose = core.registerContent(node, newParams.options || {});
-    },
-    destroy() {
-      dispose();
-    }
-  };
+// ---------------------------
+// Tooltip aliases
+// ---------------------------
+/** @param {Object} [options] @param {Array} [plugins] */
+export function createTooltipStore(options = {}, plugins = []) {
+  return createPrimitiveStore(createTooltip(options, plugins))
 }
+export const tooltipTrigger = createAction('registerTrigger', false)
+export const tooltipContent = createAction('registerContent', true)
+export const tooltipScan = createScanAction()
 
-/**
- * Svelte action for auto-scanning containers (opt-in)
- * @param {HTMLElement} node - Container element
- * @param {Object} params - { drawer } or drawer instance  
- * @returns {Object} Svelte action
- */
-export function drawerScan(node, params) {
-  let core = params?.drawer || params;
-  if (!core?.autoScan) {
-    console.warn('drawerScan: autoScan not available on this drawer instance');
-    return { destroy: () => {} };
-  }
-  
-  let dispose = core.autoScan(node);
-  
-  return {
-    update(newParams) {
-      const next = newParams?.drawer || newParams;
-      if (next === core) return; // Skip if same instance
-      
-      dispose();
-      core = next;
-      dispose = core.autoScan(node);
-    },
-    destroy() {
-      dispose();
-    }
-  };
+// ---------------------------
+// Popover aliases
+// ---------------------------
+/** @param {Object} [options] @param {Array} [plugins] */
+export function createPopoverStore(options = {}, plugins = []) {
+  return createPrimitiveStore(createPopover(options, plugins))
 }
+export const popoverTrigger = createAction('registerTrigger', false)
+export const popoverContent = createAction('registerContent', true)
+export const popoverScan = createScanAction()
 
-// Re-export core for convenience
-export { createDrawer } from '@uip/core';
+// ---------------------------
+// Menu (Context/Menu) aliases
+// ---------------------------
+/** @param {Object} [options] @param {Array} [plugins] */
+export function createMenuStore(options = {}, plugins = []) {
+  return createPrimitiveStore(createMenu(options, plugins))
+}
+export const menuTrigger = createAction('registerTrigger', false)
+export const menuContent = createAction('registerContent', true)
+export const menuScan = createScanAction()
+
+// Optional: re-export core creators for convenience
+export {
+  createDrawer,
+  createModal,
+  createTooltip,
+  createPopover,
+  createMenu,
+} from '@uip/core'

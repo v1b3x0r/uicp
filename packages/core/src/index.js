@@ -3,22 +3,33 @@
  * Framework-agnostic UI primitives with accessibility built-in
  */
 
-export { createDrawer } from './drawer/index.js';
+// Export all primitives
+export { createDrawer } from './primitives/drawer.js';
+export { createModal } from './primitives/modal.js';
+export { createTooltip } from './primitives/tooltip.js';
+export { createPopover } from './primitives/popover.js';
+export { createMenu } from './primitives/menu.js';
 
-// Re-export utilities for advanced usage
+// Keep backward compatibility with old drawer location
+export { createDrawer as createDrawerLegacy } from './drawer/index.js';
+
+// Export utilities for advanced usage
 export { 
   enableFocusTrap, 
   disableFocusTrap, 
-  focusFirstElement 
-} from './drawer/focus-trap.js';
+  focusFirstElement,
+  storeFocus,
+  restoreFocus
+} from './utils/focus-trap.js';
 
 export { 
   lockBodyScroll, 
   unlockBodyScroll,
-  isScrollLocked 
-} from './drawer/body-scroll-lock.js';
+  isScrollLocked,
+  resetScrollLock
+} from './utils/scroll-lock.js';
 
 export { 
   createEventSystem,
   createKeyboardHandler 
-} from './drawer/events.js';
+} from './utils/events.js';

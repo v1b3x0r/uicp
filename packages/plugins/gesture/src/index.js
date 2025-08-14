@@ -1,39 +1,78 @@
 /**
- * @uip/plugin-gesture - Touch & Mouse Gestures
- * Smooth drag interactions for drawers and other UI elements
+ * @uip/plugin-gesture - Universal Touch & Mouse Gestures
+ * Smooth drag interactions for all UI primitives
  */
 
 /**
- * @typedef {Object} DragOptions
- * @property {'x'|'y'} [axis='x'] - Drag axis
- * @property {number} [threshold=0.3] - Threshold to trigger open/close (0-1)
- * @property {number} [velocityThreshold=0.5] - Velocity threshold for quick swipes
- * @property {Function} [onProgress] - Progress callback
+ * Primitive type configurations for gestures
  */
+const GESTURE_CONFIGS = {
+  drawer: {
+    defaultAxis: 'x',
+    defaultThreshold: 0.3,
+    supportsDrag: true
+  },
+  modal: {
+    defaultAxis: 'y',
+    defaultThreshold: 0.2,
+    supportsDrag: true,
+    pullToClose: true
+  },
+  popover: {
+    defaultAxis: 'y',
+    defaultThreshold: 0.4,
+    supportsDrag: false
+  },
+  tooltip: {
+    supportsDrag: false
+  },
+  menu: {
+    supportsDrag: false
+  }
+};
 
 /**
- * Register drag gesture for drawer
- * @param {Object} drawer - Drawer instance from @uip/core
+ * Detect primitive type
+ * @param {Object} primitive
+ * @returns {string}
+ */
+function detectPrimitiveType(primitive) {
+  return primitive._type || 'unknown';
+}
+
+/**
+ * Register gesture handling for any primitive
+ * @param {Object} primitive - Any UI primitive instance
  * @param {HTMLElement} element
- * @param {DragOptions} options
+ * @param {Object} options
  * @returns {Function} Cleanup function
  */
-export function registerDrawerDrag(drawer, element, options = {}) {
+export function registerGesture(primitive, element, options = {}) {
   if (!element?.addEventListener) {
-    console.warn('registerDrawerDrag: Invalid element provided');
+    console.warn('registerGesture: Invalid element provided');
     return () => {};
   }
   
-  if (typeof drawer?.isOpen !== 'boolean') {
-    console.warn('registerDrawerDrag: Invalid drawer instance');
+  if (!primitive?.open || typeof primitive.isOpen !== 'boolean') {
+    console.warn('registerGesture: Invalid primitive instance');
+    return () => {};
+  }
+  
+  // Get primitive type and config
+  const type = detectPrimitiveType(primitive);
+  const config = GESTURE_CONFIGS[type] || {};
+  
+  if (!config.supportsDrag) {
+    console.info(`Gesture: ${type} primitive does not support drag gestures`);
     return () => {};
   }
   
   const {
-    axis = 'x',
-    threshold = 0.3,
+    axis = config.defaultAxis || 'x',
+    threshold = config.defaultThreshold || 0.3,
     velocityThreshold = 0.5,
-    onProgress
+    onProgress,
+    pullToClose = config.pullToClose || false
   } = options;
   
   let startPos = 0;
@@ -42,6 +81,7 @@ export function registerDrawerDrag(drawer, element, options = {}) {
   let isDragging = false;
   let dragDistance = 0;
   let containerSize = 0;
+  let animationFrame = null;
   
   const isHorizontal = axis === 'x';
   
@@ -57,15 +97,14 @@ export function registerDrawerDrag(drawer, element, options = {}) {
   }
   
   function handleStart(event) {
-    if (isDragging) return;
+    if (!primitive.isOpen && !pullToClose) return;
     
+    isDragging = true;
     startPos = getPosition(event);
     currentPos = startPos;
     startTime = Date.now();
-    isDragging = true;
     containerSize = getContainerSize();
     
-    // Disable transitions during drag
     element.style.transition = 'none';
     element.setAttribute('data-dragging', 'true');
     
@@ -80,111 +119,133 @@ export function registerDrawerDrag(drawer, element, options = {}) {
     currentPos = getPosition(event);
     dragDistance = currentPos - startPos;
     
-    // Calculate progress
+    // Calculate progress (0-1)
     const progress = Math.abs(dragDistance) / containerSize;
-    const clampedProgress = Math.min(1, Math.max(0, progress));
     
-    // Set data attributes for CSS animations
-    element.setAttribute('data-drag-progress', String(clampedProgress));
-    
-    // Progress callback for custom animations
-    if (onProgress) {
-      onProgress({
-        progress: clampedProgress,
+    // Apply drag transform
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+    animationFrame = requestAnimationFrame(() => {
+      const transform = isHorizontal 
+        ? `translateX(${dragDistance}px)`
+        : `translateY(${dragDistance}px)`;
+      
+      element.style.transform = transform;
+      element.setAttribute('data-drag-progress', progress.toFixed(2));
+      
+      onProgress?.({
         distance: dragDistance,
+        progress,
         axis,
-        isOpen: drawer.isOpen
+        primitive: type
       });
+    });
+    
+    if (event.type === 'mousemove') {
+      event.preventDefault();
     }
-    
-    // Apply transform
-    const transform = isHorizontal 
-      ? `translateX(${dragDistance}px)`
-      : `translateY(${dragDistance}px)`;
-    
-    element.style.transform = transform;
   }
   
-  function handleEnd() {
+  function handleEnd(event) {
     if (!isDragging) return;
     
     isDragging = false;
     const endTime = Date.now();
     const duration = endTime - startTime;
     const velocity = Math.abs(dragDistance) / duration;
-    
-    // Determine if should toggle
     const progress = Math.abs(dragDistance) / containerSize;
-    const shouldToggle = progress > threshold || velocity > velocityThreshold;
     
-    // Reset styles
-    element.style.transition = '';
-    element.style.transform = '';
     element.removeAttribute('data-dragging');
     element.removeAttribute('data-drag-progress');
+    element.style.transition = '';
+    element.style.transform = '';
+    
+    // Determine action based on threshold and velocity
+    const shouldToggle = progress > threshold || velocity > velocityThreshold;
     
     if (shouldToggle) {
-      // Determine direction intent
-      const isClosingGesture = drawer.isOpen && (
-        (isHorizontal && dragDistance < 0) || // Left swipe to close
-        (!isHorizontal && dragDistance < 0)   // Up swipe to close
-      );
-      
-      const isOpeningGesture = !drawer.isOpen && (
-        (isHorizontal && dragDistance > 0) || // Right swipe to open  
-        (!isHorizontal && dragDistance > 0)   // Down swipe to open
-      );
-      
-      if (isClosingGesture) {
-        drawer.close();
-      } else if (isOpeningGesture) {
-        drawer.open();
+      if (primitive.isOpen) {
+        // Closing gesture
+        const isClosingDirection = (axis === 'x' && dragDistance < 0) || 
+                                  (axis === 'y' && dragDistance > 0);
+        if (isClosingDirection || pullToClose) {
+          primitive.close();
+        }
+      } else if (pullToClose) {
+        // Opening gesture (pull to open for modal)
+        primitive.open();
       }
     }
     
+    // Cleanup
     dragDistance = 0;
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+    }
   }
   
   function handleCancel() {
     if (!isDragging) return;
     
     isDragging = false;
-    element.style.transition = '';
-    element.style.transform = '';
     element.removeAttribute('data-dragging');
     element.removeAttribute('data-drag-progress');
+    element.style.transition = '';
+    element.style.transform = '';
     dragDistance = 0;
+    
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+    }
   }
   
   // Touch events
   element.addEventListener('touchstart', handleStart, { passive: true });
   element.addEventListener('touchmove', handleMove, { passive: true });
-  element.addEventListener('touchend', handleEnd);
-  element.addEventListener('touchcancel', handleCancel);
+  element.addEventListener('touchend', handleEnd, { passive: true });
+  element.addEventListener('touchcancel', handleCancel, { passive: true });
   
   // Mouse events
   element.addEventListener('mousedown', handleStart);
   document.addEventListener('mousemove', handleMove);
   document.addEventListener('mouseup', handleEnd);
   
+  // Cleanup function
   return () => {
-    // Cleanup touch events
     element.removeEventListener('touchstart', handleStart);
     element.removeEventListener('touchmove', handleMove);
     element.removeEventListener('touchend', handleEnd);
     element.removeEventListener('touchcancel', handleCancel);
-    
-    // Cleanup mouse events
     element.removeEventListener('mousedown', handleStart);
     document.removeEventListener('mousemove', handleMove);
     document.removeEventListener('mouseup', handleEnd);
+    
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
   };
 }
 
-// Plugin interface for composition
+/**
+ * Backward compatibility
+ */
+export const registerDrawerDrag = registerGesture;
+
+/**
+ * Create gesture plugin for initialization
+ * @param {Object} options
+ * @returns {Function} Plugin function
+ */
 export function createGesturePlugin(options = {}) {
-  return {
-    name: 'gesture',
-    register: (drawer, element) => registerDrawerDrag(drawer, element, options)
+  return (primitive) => {
+    // Auto-register if element is available
+    if (primitive._element) {
+      return registerGesture(primitive, primitive._element, options);
+    }
+    
+    // Store config for later registration
+    primitive._gestureOptions = options;
+    return () => {};
   };
 }

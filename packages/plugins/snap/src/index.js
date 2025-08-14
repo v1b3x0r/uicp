@@ -1,50 +1,91 @@
 /**
- * @uip/plugin-snap - Snap Points Plugin
- * Provides dynamic sizing with predefined snap points
+ * @uip/plugin-snap - Universal Snap Points Plugin
+ * Smart sizing with snap points for all UI primitives
  */
 
 /**
+ * Snap configurations per primitive type
+ */
+const SNAP_CONFIGS = {
+  drawer: {
+    axis: 'x',
+    points: ['25%', '50%', '75%', '100%'],
+    supports: true
+  },
+  modal: {
+    axis: 'both',
+    points: ['320px', '480px', '640px', '90vw'],
+    supports: true
+  },
+  popover: {
+    axis: 'both', 
+    points: ['200px', '300px', '400px'],
+    supports: true
+  },
+  tooltip: {
+    supports: false
+  },
+  menu: {
+    axis: 'y',
+    points: ['auto'],
+    supports: false
+  }
+};
+
+/**
+ * Detect primitive type
+ * @param {Object} primitive
+ * @returns {string}
+ */
+function detectPrimitiveType(primitive) {
+  return primitive._type || 'unknown';
+}
+
+/**
  * @typedef {Object} SnapOptions
- * @property {string[]} [points=['25%', '50%', '75%', '100%']] - Available snap points
- * @property {'x'|'y'} [axis='x'] - Snap axis (x for width, y for height)
- * @property {string} [initialPoint='50%'] - Initial snap point
+ * @property {string[]} [points] - Available snap points
+ * @property {'x'|'y'|'both'} [axis] - Snap axis
+ * @property {string} [initialPoint] - Initial snap point
  * @property {string} [transition='all 0.3s ease'] - CSS transition
  * @property {Function} [onSnapChange] - Callback when snap point changes
  */
 
 /**
- * Register snap points for drawer
- * @param {Object} drawer - Drawer instance from @uip/core
- * @param {HTMLElement} element - Drawer element
+ * Register snap points for any primitive
+ * @param {Object} primitive - Any UI primitive instance
+ * @param {HTMLElement} element - Content element
  * @param {SnapOptions} options - Snap options
  * @returns {Function} Cleanup function
  */
-export function registerDrawerSnap(drawer, element, options = {}) {
+export function registerSnap(primitive, element, options = {}) {
   if (!element?.style) {
-    console.warn('registerDrawerSnap: Invalid element provided');
+    console.warn('registerSnap: Invalid element provided');
     return () => {};
   }
   
-  if (!drawer?.isOpen !== undefined) {
-    console.warn('registerDrawerSnap: Invalid drawer instance');
+  if (!primitive?.open || typeof primitive.isOpen !== 'boolean') {
+    console.warn('registerSnap: Invalid primitive instance');
+    return () => {};
+  }
+  
+  // Get primitive type and config
+  const type = detectPrimitiveType(primitive);
+  const config = SNAP_CONFIGS[type] || {};
+  
+  if (!config.supports) {
+    console.info(`Snap: ${type} primitive does not support snap points`);
     return () => {};
   }
   
   const {
-    points = ['25%', '50%', '75%', '100%'],
-    axis = 'x',
-    initialPoint = '50%',
+    points = config.points || ['50%', '100%'],
+    axis = config.axis || 'x',
+    initialPoint = points[0],
     transition = 'all 0.3s ease',
     onSnapChange
   } = options;
   
   let currentPoint = initialPoint;
-  const property = axis === 'x' ? 'width' : 'height';
-  
-  // Validate initial point
-  if (!points.includes(currentPoint)) {
-    currentPoint = points[0] || '50%';
-  }
   
   // Apply snap point
   function applySnapPoint(point) {
@@ -54,74 +95,117 @@ export function registerDrawerSnap(drawer, element, options = {}) {
     }
     
     currentPoint = point;
-    element.style[property] = point;
     element.style.transition = transition;
     
-    // Add data attribute for CSS targeting
+    if (axis === 'x') {
+      element.style.width = point;
+    } else if (axis === 'y') {
+      element.style.height = point;
+    } else if (axis === 'both') {
+      // Handle both width and height
+      if (point.includes('x')) {
+        const [width, height] = point.split('x');
+        element.style.width = width;
+        element.style.height = height;
+      } else {
+        element.style.width = point;
+        element.style.height = point;
+      }
+    }
+    
+    // Add data attributes for CSS targeting
     element.setAttribute('data-snap-point', point);
     element.setAttribute('data-snap-axis', axis);
+    element.setAttribute('data-snap-primitive', type);
     
     // Callback
-    if (onSnapChange) {
-      onSnapChange({ point, axis, property, drawer });
-    }
+    onSnapChange?.({
+      point,
+      axis,
+      primitive: type,
+      instance: primitive
+    });
   }
   
   // Initialize
   applySnapPoint(currentPoint);
   
-  // API methods to be added to drawer instance
+  // API methods (stored as property instead of mutation)
   const snapAPI = {
     getSnapPoint: () => currentPoint,
     setSnapPoint: applySnapPoint,
     getSnapPoints: () => [...points],
-    nextSnapPoint: () => {
+    snapToNext() {
       const currentIndex = points.indexOf(currentPoint);
       const nextIndex = (currentIndex + 1) % points.length;
       applySnapPoint(points[nextIndex]);
     },
-    prevSnapPoint: () => {
+    snapToPrevious() {
       const currentIndex = points.indexOf(currentPoint);
       const prevIndex = currentIndex === 0 ? points.length - 1 : currentIndex - 1;
       applySnapPoint(points[prevIndex]);
     }
   };
   
-  // Extend drawer instance with snap methods
-  Object.assign(drawer, snapAPI);
+  // Store snap API as property (no mutation)
+  primitive._snapAPI = snapAPI;
   
   // Handle resize on open/close
   const handleOpen = () => {
     applySnapPoint(currentPoint);
   };
   
-  const unsubscribeOpen = drawer.onOpenStart(handleOpen);
+  const unsubscribeOpen = primitive.onOpenStart?.(handleOpen);
   
   return () => {
-    unsubscribeOpen();
+    unsubscribeOpen?.();
     
-    // Remove snap API from drawer
-    Object.keys(snapAPI).forEach(key => {
-      delete drawer[key];
-    });
-    
-    // Reset styles
-    element.style[property] = '';
-    element.style.transition = '';
+    // Remove data attributes
     element.removeAttribute('data-snap-point');
     element.removeAttribute('data-snap-axis');
+    element.removeAttribute('data-snap-primitive');
+    
+    // Reset styles
+    element.style.transition = '';
+    if (axis === 'x' || axis === 'both') {
+      element.style.width = '';
+    }
+    if (axis === 'y' || axis === 'both') {
+      element.style.height = '';
+    }
+    
+    // Remove API
+    delete primitive._snapAPI;
   };
 }
 
+// Backward compatibility
+export const registerDrawerSnap = registerSnap;
+
 /**
- * Plugin interface for composition
- * @param {SnapOptions} options - Snap options
- * @returns {Object} Plugin object
+ * Return snap API instead of mutating
+ * @param {Object} primitive
+ * @returns {Object} Snap API methods
+ */
+export function getSnapAPI(primitive) {
+  return primitive._snapAPI || {};
+}
+
+/**
+ * Create snap plugin for initialization
+ * @param {Object} options
+ * @returns {Function} Plugin function
  */
 export function createSnapPlugin(options = {}) {
-  return {
-    name: 'snap',
-    register: (drawer, element) => registerDrawerSnap(drawer, element, options)
+  return (primitive) => {
+    // Auto-register if element is available
+    if (primitive._element) {
+      return registerSnap(primitive, primitive._element, options);
+    }
+    
+    // Store config for later registration
+    primitive._snapOptions = options;
+    return () => {};
   };
 }
 
@@ -129,52 +213,36 @@ export function createSnapPlugin(options = {}) {
  * Preset snap configurations
  */
 export const SnapPresets = {
-  // Common width points
-  widthQuarters: () => createSnapPlugin({ 
-    points: ['25%', '50%', '75%', '100%'], 
-    axis: 'x' 
-  }),
-  
-  widthHalves: () => createSnapPlugin({ 
-    points: ['50%', '100%'], 
-    axis: 'x' 
-  }),
-  
-  // Common height points
-  heightQuarters: () => createSnapPlugin({ 
-    points: ['25%', '50%', '75%', '100%'], 
-    axis: 'y' 
-  }),
-  
-  heightHalves: () => createSnapPlugin({ 
-    points: ['50%', '100%'], 
-    axis: 'y' 
-  }),
-  
-  // Mobile-friendly
-  mobileHeights: () => createSnapPlugin({ 
-    points: ['30%', '60%', '90%'], 
-    axis: 'y',
-    initialPoint: '60%' 
-  }),
-  
-  // Fixed sizes
-  fixedWidths: () => createSnapPlugin({ 
-    points: ['280px', '400px', '600px'], 
+  // Drawer presets
+  drawerWidthQuarters: () => createSnapPlugin({ 
     axis: 'x',
-    initialPoint: '400px' 
+    points: ['25%', '50%', '75%', '100%']
   }),
   
-  // Custom viewport-based
-  viewportWidth: () => createSnapPlugin({ 
-    points: ['25vw', '50vw', '75vw', '90vw'], 
+  drawerWidthFixed: () => createSnapPlugin({ 
     axis: 'x',
-    initialPoint: '50vw' 
+    points: ['280px', '400px', '600px']
   }),
   
-  viewportHeight: () => createSnapPlugin({ 
-    points: ['25vh', '50vh', '75vh', '90vh'], 
+  drawerHeightHalves: () => createSnapPlugin({ 
     axis: 'y',
-    initialPoint: '50vh' 
+    points: ['50%', '75%', '100%']
+  }),
+  
+  // Modal presets
+  modalSizes: () => createSnapPlugin({ 
+    axis: 'both',
+    points: ['400px', '600px', '800px', '90vw']
+  }),
+  
+  modalResponsive: () => createSnapPlugin({ 
+    axis: 'both',
+    points: ['320px', '480px', '768px', '1024px']
+  }),
+  
+  // Popover presets
+  popoverSizes: () => createSnapPlugin({ 
+    axis: 'both',
+    points: ['200px', '300px', '400px']
   })
 };

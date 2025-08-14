@@ -1,0 +1,23 @@
+{
+  "name": "@uikit/cli",
+  "version": "1.0.0",
+  "description": "CLI tool for UIKit",
+  "type": "module",
+  "bin": {
+    "uikit": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "templates"
+  ],
+  "scripts": {
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "fs-extra": "^11.0.0",
+    "chalk": "^5.0.0",
+    "prompts": "^2.4.0"
+  },
+  "license": "MIT"
+}

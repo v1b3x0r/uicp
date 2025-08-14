@@ -1,0 +1,32 @@
+{
+  "name": "@uikit/core",
+  "version": "1.0.0",
+  "description": "Headless UI interaction primitives",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.js --format esm,cjs --dts --clean",
+    "dev": "tsup src/index.js --format esm,cjs --dts --watch"
+  },
+  "keywords": [
+    "ui",
+    "headless",
+    "drawer",
+    "accessibility",
+    "a11y"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.0.0"
+  }
+}

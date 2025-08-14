@@ -1,22 +1,35 @@
-# UIKit — Framework-Agnostic UI Primitives
+# UIKit - Cross-Framework UI Interaction Protocol
 
-> Tiny, framework-agnostic UX primitives you can drop into any frontend.
+> Headless UI components that work everywhere. Build once, use with any framework.
 
-This repository demonstrates the UIKit philosophy with a production-grade **Drawer** component:
+UIKit เป็นชุดเครื่องมือสำหรับสร้าง UI components แบบ headless ที่ไม่ผูกติดกับเฟรมเวิร์คใดเฟรมเวิร์คหนึ่ง ด้วยการแยก core logic ออกจาก presentation layer ทำให้สามารถใช้ logic เดียวกันได้กับหลายเฟรมเวิร์ค
 
-## Architecture
+## 🎯 หลักการ
 
-### 🔧 **Core**
-Pure JavaScript logic (state, events, a11y). No framework, no styling dependencies.
+- **Headless**: แยก logic และ presentation ออกจากกัน
+- **Framework Agnostic**: ทำงานได้กับ Vanilla JS, React, Svelte และอื่นๆ
+- **Lightweight**: Core เพียง ~3-4KB gzipped
+- **Accessible**: รองรับ WCAG และ screen readers
+- **Modern**: ES2018+, Tree-shakeable, Zero runtime dependencies
 
-### 🌉 **Adapters** 
-Thin bridges connecting core state to framework reactivity systems.
+## 🏗️ Architecture
 
-### 🎨 **Presentation**
-Optional styling, animations, and gestures — fully customizable.
-
-### ⚡ **CLI**
-Scaffold working examples in your app within seconds.
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Presentation  │    │   Presentation  │    │   Presentation  │
+│     (React)     │    │    (Svelte)     │    │   (Vanilla)     │
+└─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘
+          │                      │                      │
+          ▼                      ▼                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      @uikit/core                               │
+│                   (Headless Logic)                             │
+│                                                                │
+│  • State Management    • Focus Trap     • Gesture Support     │
+│  • Event Handling      • Scroll Lock    • Lifecycle Events    │
+│  • Accessibility       • DOM Utilities  • TypeScript Types    │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ## Philosophy
 

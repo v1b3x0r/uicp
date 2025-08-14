@@ -1,0 +1,17 @@
+{
+  "name": "@uikit/skin-vanilla",
+  "version": "1.0.0",
+  "description": "Vanilla CSS skin for UIKit components",
+  "type": "module",
+  "main": "./dist/index.css",
+  "style": "./dist/index.css",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "cp src/*.css dist/",
+    "dev": "watch 'npm run build' src"
+  },
+  "license": "MIT"
+}

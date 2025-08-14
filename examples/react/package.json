@@ -14,7 +14,9 @@
     "react-dom": "^19.1.1",
     "@uip/core": "file:../../packages/core",
     "@uip/adapter-react": "file:../../packages/adapters/react",
-    "@uip/plugin-gesture": "file:../../packages/plugins/gesture"
+    "@uip/plugin-gesture": "file:../../packages/plugins/gesture",
+    "@uip/plugin-direction": "file:../../packages/plugins/direction",
+    "@uip/plugin-snap": "file:../../packages/plugins/snap"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

@@ -7,7 +7,7 @@
   "scripts": {
     "build": "npm run build:core && npm run build:plugins && npm run build:adapters",
     "build:core": "cd packages/core && npm run build",
-    "build:plugins": "cd packages/plugins/gesture && npm run build",
+    "build:plugins": "cd packages/plugins/gesture && npm run build && cd ../direction && npm run build && cd ../snap && npm run build",
     "build:adapters": "npm run build:adapter-react && npm run build:adapter-svelte && npm run build:adapter-vanilla",
     "build:adapter-react": "cd packages/adapters/react && npm run build",
     "build:adapter-svelte": "cd packages/adapters/svelte && npm run build", 

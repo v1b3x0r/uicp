@@ -24,7 +24,7 @@ export function registerDrawerDrag(drawer, element, options = {}) {
     return () => {};
   }
   
-  if (!drawer?.isOpen !== undefined) {
+  if (typeof drawer?.isOpen !== 'boolean') {
     console.warn('registerDrawerDrag: Invalid drawer instance');
     return () => {};
   }

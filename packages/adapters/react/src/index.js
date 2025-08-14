@@ -69,7 +69,7 @@ export function useDrawer(options = {}, plugins = []) {
 export function useDrawerRefs(options = {}, plugins = []) {
   const triggerRef = useRef();
   const contentRef = useRef();
-  const { registerTrigger, registerContent, ...drawer } = useDrawer(options, plugins);
+  const { registerTrigger, registerContent, ...drawer } = useDrawer(options, []);
   
   useEffect(() => {
     const cleanups = [];
@@ -80,10 +80,17 @@ export function useDrawerRefs(options = {}, plugins = []) {
     
     if (contentRef.current) {
       cleanups.push(registerContent(contentRef.current));
+      
+      // Register plugins that need element access
+      plugins.forEach(plugin => {
+        if (plugin?.register && drawer) {
+          cleanups.push(plugin.register(drawer, contentRef.current));
+        }
+      });
     }
     
     return () => cleanups.forEach(cleanup => cleanup());
-  }, [registerTrigger, registerContent]);
+  }, [registerTrigger, registerContent, drawer, plugins]);
   
   return { 
     ...drawer, 

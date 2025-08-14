@@ -1,0 +1,42 @@
+{
+  "name": "@uip/adapter-svelte",
+  "version": "2.0.0",
+  "description": "Svelte adapter for Universal UI Protocol",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.js --format esm,cjs --dts --clean",
+    "dev": "tsup src/index.js --format esm,cjs --dts --watch"
+  },
+  "keywords": [
+    "ui",
+    "svelte",
+    "adapter",
+    "stores",
+    "runes"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@uip/core": "^2.0.0",
+    "svelte": ">=4.0.0"
+  },
+  "devDependencies": {
+    "svelte": "^5.0.0",
+    "tsup": "^8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/uip",
+    "directory": "packages/adapters/svelte"
+  }
+}

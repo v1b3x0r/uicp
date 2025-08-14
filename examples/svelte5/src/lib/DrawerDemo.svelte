@@ -1,15 +1,19 @@
 <script>
-  import { drawerStore, createDrawerReactive, drawerContent, drawerDrag } from '../../../../packages/ui-svelte/dist/index.js';
+  import { drawerStore, createDrawerReactive, drawerContent, drawerDrag } from '@uip/adapter-svelte';
+  import { createGesturePlugin } from '@uip/plugin-gesture';
   import CodePreview from './CodePreview.svelte';
   
   // Lean demo switcher
   let useRunes = $state(true);
   
+  // Create gesture plugin
+  const gesturePlugin = createGesturePlugin({ axis: 'x', threshold: 0.3 });
+  
   // Store pattern
-  const storeDrawer = drawerStore();
+  const storeDrawer = drawerStore({}, [gesturePlugin]);
   
   // Runes pattern - wrap with $state
-  const reactiveDrawer = createDrawerReactive();
+  const reactiveDrawer = createDrawerReactive({}, [gesturePlugin]);
   let runesState = $state(reactiveDrawer.getState().isOpen);
   
   // Sync runes state
@@ -61,10 +65,14 @@
     {#if useRunes}
       <CodePreview 
         title="Svelte 5 Runes Pattern"
-        code={`import { createDrawerReactive, drawerContent, drawerDrag } from '@uikit/svelte';
+        code={`import { createDrawerReactive, drawerContent } from '@uip/adapter-svelte';
+import { createGesturePlugin } from '@uip/plugin-gesture';
+
+// Create gesture plugin
+const gesturePlugin = createGesturePlugin({ axis: 'x', threshold: 0.3 });
 
 // Runes pattern - wrap with $state
-const reactive = createDrawerReactive();
+const reactive = createDrawerReactive({}, [gesturePlugin]);
 let isOpen = $state(reactive.getState().isOpen);
 
 // Sync state
@@ -81,10 +89,14 @@ const drawer = {
     {:else}
       <CodePreview 
         title="Svelte Store Pattern"
-        code={`import { drawerStore, drawerContent, drawerDrag } from '@uikit/svelte';
+        code={`import { drawerStore, drawerContent } from '@uip/adapter-svelte';
+import { createGesturePlugin } from '@uip/plugin-gesture';
 
-// Classic store pattern
-const drawer = drawerStore();
+// Create gesture plugin
+const gesturePlugin = createGesturePlugin({ axis: 'x', threshold: 0.3 });
+
+// Classic store pattern with plugins
+const drawer = drawerStore({}, [gesturePlugin]);
 
 // Use in template
 $: isOpen = $drawer.isOpen;`}
@@ -121,7 +133,6 @@ $: isOpen = $drawer.isOpen;`}
 <!-- Drawer Element -->
 <div 
   use:drawerContent={{ drawer: activeDrawer }}
-  use:drawerDrag={{ drawer: activeDrawer, axis: 'x', threshold: 0.3 }}
   class="drawer"
   class:drawer-open={isOpen}
   aria-hidden={!isOpen}

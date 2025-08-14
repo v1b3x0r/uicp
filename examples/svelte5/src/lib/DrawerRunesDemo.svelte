@@ -1,8 +1,10 @@
 <script>
-  import { createDrawerReactive, drawerContent, drawerDrag } from '../../../../packages/ui-svelte/dist/index.js';
+  import { createDrawerReactive, drawerContent } from '@uip/adapter-svelte';
+  import { createGesturePlugin } from '@uip/plugin-gesture';
   
-  // Pure runes approach
-  const reactive = createDrawerReactive();
+  // Pure runes approach with gesture plugin
+  const gesturePlugin = createGesturePlugin({ axis: 'x', threshold: 0.25 });
+  const reactive = createDrawerReactive({}, [gesturePlugin]);
   let isOpen = $state(reactive.getState().isOpen);
   let dragCount = $state(0);
   
@@ -45,7 +47,6 @@
 <!-- Drawer -->
 <div 
   use:drawerContent={{ drawer }}
-  use:drawerDrag={{ drawer, axis: 'x', threshold: 0.25 }}
   class="drawer"
   class:drawer-open={drawer.isOpen}
   aria-hidden={!drawer.isOpen}

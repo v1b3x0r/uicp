@@ -1,24 +1,31 @@
 {
-  "name": "uikit",
-  "version": "1.0.0",
+  "name": "@uip/monorepo",
+  "version": "2.0.0",
   "private": true,
-  "description": "Cross-framework UI Interaction Protocol",
+  "description": "Universal UI Protocol - Lean, cross-framework UI primitives",
   "type": "module",
   "scripts": {
-    "build": "npm run build:core && npm run build:vanilla && npm run build:react && npm run build:svelte && npm run build:skin",
-    "build:core": "cd packages/ui-core && npm run build",
-    "build:vanilla": "cd packages/ui-vanilla && npm run build",
-    "build:react": "cd packages/ui-react && npm run build",
-    "build:svelte": "cd packages/ui-svelte && npm run build",
-    "build:skin": "cd packages/ui-skin-vanilla && npm run build || true",
+    "build": "npm run build:core && npm run build:plugins && npm run build:adapters",
+    "build:core": "cd packages/core && npm run build",
+    "build:plugins": "cd packages/plugins/gesture && npm run build",
+    "build:adapters": "npm run build:adapter-react && npm run build:adapter-svelte && npm run build:adapter-vanilla",
+    "build:adapter-react": "cd packages/adapters/react && npm run build",
+    "build:adapter-svelte": "cd packages/adapters/svelte && npm run build", 
+    "build:adapter-vanilla": "cd packages/adapters/vanilla && npm run build",
     "dev:vanilla": "cd examples/vanilla && npm run dev",
     "dev:react": "cd examples/react && npm run dev",
     "dev:svelte": "cd examples/svelte && npm run dev",
+    "dev:svelte5": "cd examples/svelte5 && npm run dev",
     "test": "vitest",
-    "size": "size-limit"
+    "size": "size-limit",
+    "clean": "rm -rf packages/*/dist",
+    "release": "npm run build && npm run test && npm run size"
   },
   "workspaces": [
-    "packages/*",
+    "packages/core",
+    "packages/plugins/*", 
+    "packages/adapters/*",
+    "packages/skins/*",
     "examples/*"
   ],
   "devDependencies": {

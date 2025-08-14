@@ -60,8 +60,8 @@ export function createDrawer(options = {}) {
     open() {
       if (isOpen) return;
       
-      emit(lifecycle.openStart);
       isOpen = true;
+      emit(lifecycle.openStart);
       notify();
       
       requestAnimationFrame(() => {
@@ -72,8 +72,8 @@ export function createDrawer(options = {}) {
     close() {
       if (!isOpen) return;
       
-      emit(lifecycle.closeStart);
       isOpen = false;
+      emit(lifecycle.closeStart);
       notify();
       
       requestAnimationFrame(() => {

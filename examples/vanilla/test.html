@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UIKit Test</title>
+</head>
+<body>
+  <h1>UIKit Module Test</h1>
+  <button id="test-btn">Test Drawer</button>
+  <div id="test-drawer" style="display: none; padding: 20px; background: #f0f0f0; margin: 10px 0;">
+    <p>Drawer is working!</p>
+  </div>
+  <div id="status">Loading...</div>
+  
+  <script type="module">
+    try {
+      const { createDrawer } = await import('@uikit/core');
+      
+      document.getElementById('status').textContent = '✅ Module loaded successfully';
+      
+      const drawer = createDrawer();
+      const btn = document.getElementById('test-btn');
+      const content = document.getElementById('test-drawer');
+      
+      btn.addEventListener('click', () => {
+        if (drawer.isOpen) {
+          content.style.display = 'none';
+          drawer.close();
+        } else {
+          content.style.display = 'block';
+          drawer.open();
+        }
+      });
+      
+      drawer.onChange((state) => {
+        console.log('Drawer state:', state);
+      });
+      
+      console.log('Drawer initialized:', drawer);
+      
+    } catch (error) {
+      document.getElementById('status').textContent = '❌ Error: ' + error.message;
+      console.error('Import error:', error);
+    }
+  </script>
+</body>
+</html>

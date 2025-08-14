@@ -1,5 +1,5 @@
 <script>
-  import { drawerStore, drawerTrigger, drawerContent, drawerDrag } from '@uikit/svelte';
+  import { drawerStore, drawerContent, drawerDrag } from '@uikit/svelte';
   
   const leftDrawer = drawerStore();
   const rightDrawer = drawerStore();
@@ -66,7 +66,13 @@
 </div>
 
 {#if $leftDrawer.isOpen}
-  <div class="drawer-overlay" on:click={leftDrawer.close}></div>
+  <div 
+    class="drawer-overlay" 
+    role="button" 
+    tabindex="0"
+    on:click={leftDrawer.close}
+    on:keydown={(e) => e.key === 'Enter' && leftDrawer.close()}
+  ></div>
 {/if}
 
 <!-- Right Drawer -->
@@ -99,5 +105,11 @@
 </div>
 
 {#if $rightDrawer.isOpen}
-  <div class="drawer-overlay" on:click={rightDrawer.close}></div>
+  <div 
+    class="drawer-overlay" 
+    role="button" 
+    tabindex="0"
+    on:click={rightDrawer.close}
+    on:keydown={(e) => e.key === 'Enter' && rightDrawer.close()}
+  ></div>
 {/if}

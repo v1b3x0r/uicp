@@ -1,5 +1,6 @@
 <script>
   import { drawerStore, createDrawerReactive, drawerContent, drawerDrag } from '../../../../packages/ui-svelte/dist/index.js';
+  import CodePreview from './CodePreview.svelte';
   
   // Lean demo switcher
   let useRunes = $state(true);
@@ -52,6 +53,69 @@
     <p>Drawer Status: <span class="status" class:open={isOpen}>{isOpen ? 'Open' : 'Closed'}</span></p>
     <p>Reactivity: <span class="tech">{useRunes ? 'Universal (works everywhere)' : 'Component-scoped'}</span></p>
   </div>
+  
+  <!-- Code Examples -->
+  <div class="code-section">
+    <h3>Implementation</h3>
+    
+    {#if useRunes}
+      <CodePreview 
+        title="Svelte 5 Runes Pattern"
+        code={`import { createDrawerReactive, drawerContent, drawerDrag } from '@uikit/svelte';
+
+// Runes pattern - wrap with $state
+const reactive = createDrawerReactive();
+let isOpen = $state(reactive.getState().isOpen);
+
+// Sync state
+reactive.onChange(({ isOpen: newIsOpen }) => {
+  isOpen = newIsOpen;
+});
+
+// Create drawer object
+const drawer = {
+  ...reactive,
+  get isOpen() { return isOpen; }
+};`}
+      />
+    {:else}
+      <CodePreview 
+        title="Svelte Store Pattern"
+        code={`import { drawerStore, drawerContent, drawerDrag } from '@uikit/svelte';
+
+// Classic store pattern
+const drawer = drawerStore();
+
+// Use in template
+$: isOpen = $drawer.isOpen;`}
+      />
+    {/if}
+    
+    <CodePreview 
+      title="HTML Template"
+      language="html"
+      code={`<!-- Drawer Element -->
+<div 
+  use:drawerContent={{ drawer }}
+  use:drawerDrag={{ drawer, axis: 'x', threshold: 0.3 }}
+  class="drawer"
+  class:drawer-open={isOpen}
+>
+  <div class="drawer-header">
+    <h3>My Drawer</h3>
+    <button onclick={drawer.close}>×</button>
+  </div>
+  <div class="drawer-body">
+    <p>Content here!</p>
+  </div>
+</div>
+
+<!-- Overlay -->
+{#if isOpen}
+  <div class="overlay" onclick={drawer.close}></div>
+{/if}`}
+    />
+  </div>
 </div>
 
 <!-- Drawer Element -->
@@ -85,7 +149,7 @@
 <!-- Overlay -->
 {#if isOpen}
   <div 
-    class="drawer-overlay" 
+    class="drawer-overlay show" 
     onclick={activeDrawer.close}
     onkeydown={(e) => e.key === 'Escape' && activeDrawer.close()}
     role="button"
@@ -96,125 +160,272 @@
 
 <style>
   .demo-container {
-    padding: 2rem;
-    max-width: 600px;
+    padding: var(--space-8);
+    max-width: 800px;
     margin: 0 auto;
   }
   
+  .demo-container h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-1);
+    margin-bottom: var(--space-6);
+    text-align: center;
+  }
+  
   .mode-toggle {
-    padding: 1rem;
-    background: #f8fafc;
-    border-radius: 0.5rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid #e2e8f0;
+    padding: var(--space-5);
+    background: var(--surface-2);
+    border-radius: var(--radius-3);
+    margin-bottom: var(--space-6);
+    border: 1px solid var(--border);
+  }
+  
+  .mode-toggle label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 500;
+    color: var(--text-1);
+    cursor: pointer;
+  }
+  
+  .mode-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
   }
   
   .mode-status {
     display: block;
-    margin-top: 0.5rem;
+    margin-top: var(--space-3);
     font-size: 0.875rem;
-    color: #64748b;
+    color: var(--text-3);
   }
   
   .controls {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+    flex-wrap: wrap;
   }
   
   .btn {
-    background: #3b82f6;
-    color: white;
+    background: var(--accent);
+    color: var(--accent-text);
     border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.375rem;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-2);
     cursor: pointer;
     font-weight: 500;
-    transition: background 0.2s;
+    font-size: 14px;
+    transition: all var(--duration-normal) var(--ease-out);
+    box-shadow: 0 1px 2px var(--shadow-1);
   }
   
-  .btn:hover { background: #2563eb; }
+  .btn:hover { 
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px var(--shadow-2);
+  }
   
   .btn-secondary {
-    background: #6b7280;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.25rem;
+    background: var(--surface-3);
+    color: var(--text-1);
+    border: 1px solid var(--border);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-2);
     cursor: pointer;
     font-size: 0.875rem;
-    margin-top: 1rem;
+    font-weight: 500;
+    margin-top: var(--space-4);
+    transition: all var(--duration-normal) var(--ease-out);
   }
   
-  .btn-secondary:hover { background: #4b5563; }
+  .btn-secondary:hover { 
+    background: var(--surface-4);
+    border-color: var(--border-2);
+  }
   
   .state-info {
-    background: #f1f5f9;
-    padding: 1rem;
-    border-radius: 0.375rem;
-    font-family: 'SF Mono', monospace;
+    background: var(--surface-2);
+    padding: var(--space-5);
+    border-radius: var(--radius-3);
+    font-family: var(--font-mono);
     font-size: 0.875rem;
+    border: 1px solid var(--border);
+  }
+  
+  .state-info p {
+    margin-bottom: var(--space-2);
+  }
+  
+  .state-info p:last-child {
+    margin-bottom: 0;
   }
   
   .status {
     font-weight: 600;
-    color: #dc2626;
+    color: var(--danger);
   }
   
-  .status.open { color: #16a34a; }
+  .status.open { 
+    color: var(--success);
+  }
   
   .tech { 
-    color: #7c3aed;
+    color: var(--accent);
     font-weight: 500;
   }
   
-  /* Drawer Styles */
+  .code-section {
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border);
+  }
+  
+  .code-section h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-1);
+    margin-bottom: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  
+  .code-section h3:before {
+    content: '⚡';
+    font-size: 1.25rem;
+  }
+  
+  /* Modern Drawer Styles */
   .drawer {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
-    width: 320px;
-    background: white;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    width: min(380px, calc(100vw - 2rem));
+    background: var(--surface-1);
+    box-shadow: 
+      0 25px 50px -12px var(--shadow-4),
+      0 0 0 1px var(--border);
     transform: translateX(-100%);
-    transition: transform 0.3s ease;
+    transition: transform var(--duration-slow) var(--spring);
     z-index: 1000;
+    backdrop-filter: blur(12px);
+    border-radius: 0 var(--radius-4) var(--radius-4) 0;
   }
   
-  .drawer-open { transform: translateX(0); }
+  .drawer-open { 
+    transform: translateX(0);
+    transition: transform var(--duration-slow) var(--spring);
+  }
   
   .drawer-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid #e5e7eb;
+    padding: var(--space-5) var(--space-6);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  
+  .drawer-header h3 {
+    color: var(--text-1);
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin: 0;
   }
   
   .drawer-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-2);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
     cursor: pointer;
-    color: #6b7280;
-    padding: 0.25rem;
+    color: var(--text-2);
+    transition: all var(--duration-normal) var(--ease-out);
+  }
+  
+  .drawer-close:hover {
+    background: var(--surface-4);
+    color: var(--text-1);
+    transform: scale(1.05);
   }
   
   .drawer-body { 
-    padding: 1rem; 
+    padding: var(--space-6); 
     line-height: 1.6;
+    color: var(--text-1);
+  }
+  
+  .drawer-body p {
+    margin-bottom: var(--space-4);
   }
   
   .drawer-body ul {
-    margin: 1rem 0;
-    padding-left: 1.5rem;
+    margin: var(--space-4) 0;
+    padding-left: var(--space-5);
+  }
+  
+  .drawer-body li {
+    margin-bottom: var(--space-2);
+    color: var(--text-2);
   }
   
   .drawer-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--shadow-4);
+    backdrop-filter: blur(4px);
     z-index: 999;
+    opacity: 0;
+    transition: opacity var(--duration-slow) var(--ease-out);
+  }
+  
+  .drawer-overlay.show {
+    opacity: 1;
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .drawer {
+      width: calc(100vw - var(--space-4));
+      max-width: none;
+    }
+    
+    .demo-container {
+      padding: var(--space-6);
+    }
+    
+    .controls {
+      gap: var(--space-2);
+    }
+    
+    .btn {
+      flex: 1;
+      text-align: center;
+      min-height: 44px;
+    }
+  }
+  
+  /* Touch improvements */
+  @media (pointer: coarse) {
+    .drawer-close {
+      min-width: 44px;
+      min-height: 44px;
+    }
+    
+    .btn {
+      min-height: 44px;
+      padding: var(--space-4) var(--space-5);
+    }
+    
   }
 </style>

@@ -67,7 +67,7 @@ describe('DOM Manipulation', () => {
       drawer.open();
       
       const firstBtn = document.getElementById('first');
-      const secondBtn = document.getElementById('second');
+      // const secondBtn = document.getElementById('second'); // unused
       
       expect(document.activeElement).toBe(firstBtn);
       

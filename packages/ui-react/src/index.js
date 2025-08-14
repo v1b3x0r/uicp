@@ -2,121 +2,55 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { createDrawer, registerDrawerDrag } from '@uikit/core';
 
 /**
- * React hook for drawer
+ * React hook for drawer - lean modern version
  * @param {Object} [options]
  * @returns {Object}
  */
 export function useDrawer(options = {}) {
-  const drawerRef = useRef(null);
+  const drawerRef = useRef();
   const [isOpen, setIsOpen] = useState(false);
   
   useEffect(() => {
-    if (!drawerRef.current) {
-      drawerRef.current = createDrawer({
-        ...options,
-        onStateChange: (state) => setIsOpen(state.isOpen)
-      });
-      setIsOpen(drawerRef.current.isOpen);
-    }
+    drawerRef.current ??= createDrawer({
+      ...options,
+      onStateChange: (state) => setIsOpen(state.isOpen)
+    });
+    setIsOpen(drawerRef.current.isOpen);
     
-    return () => {
-      if (drawerRef.current && drawerRef.current.cleanup) {
-        drawerRef.current.cleanup();
-      }
-    };
+    return () => drawerRef.current?.cleanup?.();
   }, []);
   
-  const open = useCallback(() => {
-    if (drawerRef.current) drawerRef.current.open();
-  }, []);
-  
-  const close = useCallback(() => {
-    if (drawerRef.current) drawerRef.current.close();
-  }, []);
-  
-  const toggle = useCallback(() => {
-    if (drawerRef.current) drawerRef.current.toggle();
-  }, []);
-  
-  const registerTrigger = useCallback((element) => {
-    if (drawerRef.current && element) {
-      return drawerRef.current.registerTrigger(element);
-    }
-    return () => {};
-  }, []);
-  
-  const registerContent = useCallback((element, opts) => {
-    if (drawerRef.current && element) {
-      return drawerRef.current.registerContent(element, opts);
-    }
-    return () => {};
-  }, []);
-  
-  const registerDrag = useCallback((element, opts) => {
-    if (drawerRef.current && element) {
-      return registerDrawerDrag(drawerRef.current, element, opts);
-    }
-    return () => {};
-  }, []);
+  const drawer = drawerRef.current;
   
   return {
     isOpen,
-    open,
-    close,
-    toggle,
-    registerTrigger,
-    registerContent,
-    registerDrag,
-    drawer: drawerRef.current
+    open: useCallback(() => drawer?.open(), [drawer]),
+    close: useCallback(() => drawer?.close(), [drawer]), 
+    toggle: useCallback(() => drawer?.toggle(), [drawer]),
+    registerTrigger: useCallback((el) => drawer?.registerTrigger(el) ?? (() => {}), [drawer]),
+    registerContent: useCallback((el, opts) => drawer?.registerContent(el, opts) ?? (() => {}), [drawer]),
+    registerDrag: useCallback((el, opts) => drawer ? registerDrawerDrag(drawer, el, opts) : (() => {}), [drawer])
   };
 }
 
 /**
- * Hook for trigger ref
+ * Higher-order hook with ref management
+ * @param {Object} [options]
  */
-export function useDrawerTrigger(drawer) {
-  const ref = useRef(null);
+export function useDrawerRefs(options = {}) {
+  const triggerRef = useRef();
+  const contentRef = useRef();
+  const { registerTrigger, registerContent, registerDrag, ...drawer } = useDrawer(options);
   
   useEffect(() => {
-    if (ref.current && drawer && drawer.registerTrigger) {
-      const cleanup = drawer.registerTrigger(ref.current);
-      return cleanup;
-    }
-  }, [drawer]);
+    const cleanups = [
+      triggerRef.current && registerTrigger(triggerRef.current),
+      contentRef.current && registerContent(contentRef.current),
+      contentRef.current && registerDrag(contentRef.current)
+    ].filter(Boolean);
+    
+    return () => cleanups.forEach(fn => fn());
+  }, [registerTrigger, registerContent, registerDrag]);
   
-  return ref;
+  return { drawer, triggerRef, contentRef };
 }
-
-/**
- * Hook for content ref
- */
-export function useDrawerContent(drawer, options = {}) {
-  const ref = useRef(null);
-  
-  useEffect(() => {
-    if (ref.current && drawer && drawer.registerContent) {
-      const cleanup = drawer.registerContent(ref.current, options);
-      return cleanup;
-    }
-  }, [drawer, options]);
-  
-  return ref;
-}
-
-/**
- * Hook for drag gesture
- */
-export function useDrawerDrag(drawer, options = {}) {
-  const ref = useRef(null);
-  
-  useEffect(() => {
-    if (ref.current && drawer) {
-      const cleanup = registerDrawerDrag(drawer.drawer || drawer, ref.current, options);
-      return cleanup;
-    }
-  }, [drawer, options]);
-  
-  return ref;
-}
-
-export { createDrawer, registerDrawerDrag } from '@uikit/core';

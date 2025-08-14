@@ -6,29 +6,22 @@
 </script>
 
 <div class="demo-section">
-  <h2>Basic Drawers</h2>
+  <h2>Svelte Drawer Demo - Modern Lean Version</h2>
   <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-    <button class="btn" on:click={leftDrawer.open}>
-      Open Left Drawer
-    </button>
-    <button class="btn" on:click={rightDrawer.open}>
-      Open Right Drawer
-    </button>
+    <button class="btn" on:click={leftDrawer.open}>Open Left</button>
+    <button class="btn" on:click={rightDrawer.open}>Open Right</button>
   </div>
 </div>
 
 <div class="demo-section">
   <h2>Features</h2>
   <ul>
-    <li>✅ Svelte stores integration</li>
-    <li>✅ Action directives</li>
-    <li>✅ Keyboard navigation (Tab, Shift+Tab, ESC)</li>
-    <li>✅ Focus trap when open</li>
+    <li>✅ Svelte 5+ stores & actions</li>
+    <li>✅ Reactive state with modern patterns</li>
+    <li>✅ Touch/drag with velocity detection</li>
+    <li>✅ Focus trap & keyboard nav</li>
+    <li>✅ ARIA accessibility</li>
     <li>✅ Body scroll lock</li>
-    <li>✅ Touch/mouse drag support</li>
-    <li>✅ ARIA attributes</li>
-    <li>✅ Smooth animations</li>
-    <li>✅ Reactive state updates</li>
   </ul>
 </div>
 
@@ -42,38 +35,22 @@
 >
   <div class="drawer-header">
     <h2>Left Drawer</h2>
-    <button 
-      class="drawer-close" 
-      on:click={leftDrawer.close}
-      aria-label="Close drawer"
-    >
-      ×
-    </button>
+    <button class="drawer-close" on:click={leftDrawer.close} aria-label="Close">×</button>
   </div>
   <div class="drawer-body">
-    <p>This is a Svelte drawer component with gesture support!</p>
-    <p>Try dragging it to close.</p>
-    <br />
-    <button class="btn btn--secondary">Focusable Button 1</button>
-    <button class="btn btn--secondary">Focusable Button 2</button>
-    <br /><br />
+    <p>Modern lean Svelte drawer!</p>
+    <p>Drag to close or use ESC key.</p>
+    <div style="display: flex; gap: 0.5rem; margin: 1rem 0;">
+      <button class="btn btn--secondary">Button 1</button>
+      <button class="btn btn--secondary">Button 2</button>
+    </div>
     <input 
       type="text" 
-      placeholder="Test input" 
-      style="padding: 0.5rem; width: 100%; border: 1px solid #d1d5db; border-radius: 0.25rem;" 
+      placeholder="Test focus trap"
+      style="padding: 0.5rem; width: 100%; border: 1px solid #ddd; border-radius: 0.25rem;"
     />
   </div>
 </div>
-
-{#if $leftDrawer.isOpen}
-  <div 
-    class="drawer-overlay" 
-    role="button" 
-    tabindex="0"
-    on:click={leftDrawer.close}
-    on:keydown={(e) => e.key === 'Enter' && leftDrawer.close()}
-  ></div>
-{/if}
 
 <!-- Right Drawer -->
 <div 
@@ -85,31 +62,20 @@
 >
   <div class="drawer-header">
     <h2>Right Drawer</h2>
-    <button 
-      class="drawer-close" 
-      on:click={rightDrawer.close}
-      aria-label="Close drawer"
-    >
-      ×
-    </button>
+    <button class="drawer-close" on:click={rightDrawer.close} aria-label="Close">×</button>
   </div>
   <div class="drawer-body">
-    <p>This is a right-side drawer.</p>
-    <p>It also supports all the same features!</p>
-    <br />
-    <div>
-      <p><strong>Current state:</strong> {$rightDrawer.isOpen ? 'Open' : 'Closed'}</p>
-      <p><strong>Reactive updates:</strong> This text changes automatically!</p>
-    </div>
+    <p>Right-side drawer with modern Svelte patterns.</p>
+    <p><strong>State:</strong> {$rightDrawer.isOpen ? 'Open' : 'Closed'}</p>
+    <button class="btn" on:click={rightDrawer.toggle}>Toggle</button>
   </div>
 </div>
 
+<!-- Overlays -->
+{#if $leftDrawer.isOpen}
+  <div class="drawer-overlay" on:click={leftDrawer.close} role="button" tabindex="-1"></div>
+{/if}
+
 {#if $rightDrawer.isOpen}
-  <div 
-    class="drawer-overlay" 
-    role="button" 
-    tabindex="0"
-    on:click={rightDrawer.close}
-    on:keydown={(e) => e.key === 'Enter' && rightDrawer.close()}
-  ></div>
+  <div class="drawer-overlay" on:click={rightDrawer.close} role="button" tabindex="-1"></div>
 {/if}

@@ -46,7 +46,7 @@ export function createDrawer(options = {}) {
   let contentElement = null;
   let scrollLocked = false;
   
-  if (onStateChange) listeners.add(onStateChange);
+  onStateChange && listeners.add(onStateChange);
   
   const api = {
     get isOpen() {
@@ -57,58 +57,33 @@ export function createDrawer(options = {}) {
       return { isOpen };
     },
     
-    open() {
+    open: () => {
       if (isOpen) return;
-      
       isOpen = true;
       emit(lifecycle.openStart);
       notify();
-      
-      requestAnimationFrame(() => {
-        emit(lifecycle.openEnd);
-      });
+      queueMicrotask(() => emit(lifecycle.openEnd));
     },
     
-    close() {
+    close: () => {
       if (!isOpen) return;
-      
       isOpen = false;
       emit(lifecycle.closeStart);
       notify();
-      
-      requestAnimationFrame(() => {
-        emit(lifecycle.closeEnd);
-      });
+      queueMicrotask(() => emit(lifecycle.closeEnd));
     },
     
-    toggle() {
-      isOpen ? api.close() : api.open();
-    },
+    toggle: () => isOpen ? api.close() : api.open(),
     
-    onChange(fn) {
-      listeners.add(fn);
-      return () => listeners.delete(fn);
-    },
+    onChange: (fn) => (listeners.add(fn), () => listeners.delete(fn)),
     
-    onOpenStart(fn) {
-      lifecycle.openStart.add(fn);
-      return () => lifecycle.openStart.delete(fn);
-    },
+    onOpenStart: (fn) => (lifecycle.openStart.add(fn), () => lifecycle.openStart.delete(fn)),
     
-    onOpenEnd(fn) {
-      lifecycle.openEnd.add(fn);
-      return () => lifecycle.openEnd.delete(fn);
-    },
+    onOpenEnd: (fn) => (lifecycle.openEnd.add(fn), () => lifecycle.openEnd.delete(fn)),
     
-    onCloseStart(fn) {
-      lifecycle.closeStart.add(fn);
-      return () => lifecycle.closeStart.delete(fn);
-    },
+    onCloseStart: (fn) => (lifecycle.closeStart.add(fn), () => lifecycle.closeStart.delete(fn)),
     
-    onCloseEnd(fn) {
-      lifecycle.closeEnd.add(fn);
-      return () => lifecycle.closeEnd.delete(fn);
-    },
+    onCloseEnd: (fn) => (lifecycle.closeEnd.add(fn), () => lifecycle.closeEnd.delete(fn)),
     
     registerTrigger(element) {
       if (!element || typeof element.addEventListener !== 'function') {
@@ -133,12 +108,8 @@ export function createDrawer(options = {}) {
       element.addEventListener('click', handleClick);
       element.addEventListener('keydown', handleKeyDown);
       
-      if (!element.hasAttribute('role')) {
-        element.setAttribute('role', 'button');
-      }
-      if (!element.hasAttribute('tabindex')) {
-        element.setAttribute('tabindex', '0');
-      }
+      element.hasAttribute('role') || element.setAttribute('role', 'button');
+      element.hasAttribute('tabindex') || element.setAttribute('tabindex', '0');
       
       const unsubscribe = api.onChange(updateAria);
       
@@ -149,20 +120,16 @@ export function createDrawer(options = {}) {
       };
     },
     
-    registerContent(element, options = {}) {
-      if (!element || typeof element.addEventListener !== 'function') {
-        console.warn('registerContent: Invalid element provided');
+    registerContent: (element, options = {}) => {
+      if (!element?.addEventListener) {
+        console.warn('registerContent: Invalid element');
         return () => {};
       }
       
       const { trapFocus = true, closeOnEscape = true, lockBodyScroll = true } = options;
       contentElement = element;
       
-      const handleEscape = (event) => {
-        if (event.key === 'Escape' && closeOnEscape) {
-          api.close();
-        }
-      };
+      const handleEscape = (e) => e.key === 'Escape' && closeOnEscape && api.close();
       
       const onOpen = () => {
         if (typeof document !== 'undefined') {
@@ -203,9 +170,7 @@ export function createDrawer(options = {}) {
           
           element.setAttribute('aria-hidden', 'true');
           
-          if (lastFocused && typeof lastFocused.focus === 'function') {
-            lastFocused.focus();
-          }
+          lastFocused?.focus?.();
         }
       };
       
@@ -263,28 +228,21 @@ export function createDrawer(options = {}) {
     document.addEventListener('keydown', focusTrapHandler);
   }
   
-  function disableFocusTrap() {
+  const disableFocusTrap = () => {
     if (focusTrapHandler && typeof document !== 'undefined') {
       document.removeEventListener('keydown', focusTrapHandler);
       focusTrapHandler = null;
     }
-  }
+  };
   
-  function focusFirstElement(element) {
-    const focusable = element.querySelector(
-      'a[href], button:not([disabled]), textarea:not([disabled]), ' +
-      'input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    );
-    
-    if (focusable) {
-      focusable.focus();
-    }
-  }
+  const focusFirstElement = (element) => {
+    element.querySelector('a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')?.focus();
+  };
   
   let scrollbarWidth = 0;
   let originalBodyPaddingRight = '';
   
-  function lockScroll() {
+  const lockScroll = () => {
     if (typeof document === 'undefined' || scrollLocked) return;
     
     const body = document.body;
@@ -300,7 +258,7 @@ export function createDrawer(options = {}) {
     scrollLocked = true;
   }
   
-  function unlockScroll() {
+  const unlockScroll = () => {
     if (typeof document === 'undefined' || !scrollLocked) return;
     
     const body = document.body;

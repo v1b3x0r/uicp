@@ -99,16 +99,12 @@ export function registerDrawerDrag(drawer, element, options = {}) {
     
     const progress = Math.abs(dragDistance) / containerSize;
     const shouldToggle = progress > threshold || velocity > velocityThreshold;
-    
-    element.style.transition = '';
-    element.style.transform = '';
+    element.style.transition = element.style.transform = '';
     element.removeAttribute('data-dragging');
     element.removeAttribute('data-drag-progress');
     
     if (shouldToggle) {
-      const isOpening = drawer.isOpen 
-        ? (isHorizontal ? dragDistance > 0 : dragDistance > 0)
-        : (isHorizontal ? dragDistance < 0 : dragDistance < 0);
+      const isOpening = drawer.isOpen ? dragDistance > 0 : dragDistance < 0;
       
       if (drawer.isOpen && !isOpening) {
         drawer.close();
@@ -120,16 +116,14 @@ export function registerDrawerDrag(drawer, element, options = {}) {
     dragDistance = 0;
   }
   
-  function handleCancel() {
+  const handleCancel = () => {
     if (!isDragging) return;
-    
     isDragging = false;
-    element.style.transition = '';
-    element.style.transform = '';
+    element.style.transition = element.style.transform = '';
     element.removeAttribute('data-dragging');
     element.removeAttribute('data-drag-progress');
     dragDistance = 0;
-  }
+  };
   
   element.addEventListener('touchstart', handleStart, { passive: true });
   element.addEventListener('touchmove', handleMove, { passive: true });

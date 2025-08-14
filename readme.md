@@ -37,42 +37,47 @@ UIKit เป็นชุดเครื่องมือสำหรับส�
 
 **Solution**: Separation of concerns through layered architecture:
 
-| Layer | Responsibility | Package |
-|-------|---------------|---------|
-| **Core** | State machine, events, accessibility | `@uikit/core` |
-| **Adapter** | Framework reactivity integration | `@uikit/react`, `@uikit/svelte`, `@uikit/vanilla` |
-| **Presentation** | Styling, animation, gestures | `skins/plugins` or your custom code |
+| Layer            | Responsibility                       | Package                                           |
+| ---------------- | ------------------------------------ | ------------------------------------------------- |
+| **Core**         | State machine, events, accessibility | `@uikit/core`                                     |
+| **Adapter**      | Framework reactivity integration     | `@uikit/react`, `@uikit/svelte`, `@uikit/vanilla` |
+| **Presentation** | Styling, animation, gestures         | `skins/plugins` or your custom code               |
 
 **Result**: Lighter bundles, easier testing, zero vendor lock-in.
 
 ## 📦 Packages
 
-| Package | Description | Size (min+gzip) |
-|---------|-------------|-----------------|
-| `@uikit/core` | Headless Drawer core (pure JS) | ~3-4 KB |
-| `@uikit/vanilla` | Plain DOM usage helpers | ~1 KB |
-| `@uikit/react` | `useDrawer(core)` hook | ~1 KB |
-| `@uikit/svelte` | `drawerStore(core)` store | ~1 KB |
-| `@uikit/skin-vanilla` | Minimal CSS variables skin (optional) | ~1-2 KB |
-| `@uikit/cli` | Project scaffolder | - |
+| Package                | Description                    | Size (min+gzip) |
+| ---------------------- | ------------------------------ | --------------- |
+| `@uip/core`            | Headless Drawer core (pure JS) | ~3-4 KB         |
+| `@uip/adapter-vanilla` | Plain DOM usage helpers        | ~1 KB           |
+| `@uip/adapter-react`   | `useDrawer` hook               | ~1 KB           |
+| `@uip/adapter-svelte`  | `drawerStore` store + actions  | ~1 KB           |
+| `@uip/plugin-gesture`  | Touch/mouse drag support       | ~1 KB           |
+| `@uikit/cli`           | Project scaffolder             | -               |
 
 ## 🚀 Installation
 
 Choose the packages you need:
 
+Note: Package scope is `@uip/*` for core/adapters/plugins. CLI remains `@uikit/cli`.
+
 ### React
+
 ```bash
-npm i @uikit/core @uikit/react @uikit/skin-vanilla
+npm i @uip/core @uip/adapter-react @uip/plugin-gesture
 ```
 
 ### Svelte
+
 ```bash
-npm i @uikit/core @uikit/svelte @uikit/skin-vanilla
+npm i @uip/core @uip/adapter-svelte @uip/plugin-gesture
 ```
 
 ### Vanilla JavaScript
+
 ```bash
-npm i @uikit/core @uikit/vanilla @uikit/skin-vanilla
+npm i @uip/core @uip/adapter-vanilla @uip/plugin-gesture
 ```
 
 ## 🎯 Quick Start
@@ -80,68 +85,62 @@ npm i @uikit/core @uikit/vanilla @uikit/skin-vanilla
 ### Vanilla JavaScript
 
 ```html
-<link rel="stylesheet" href="/node_modules/@uikit/skin-vanilla/dist/drawer.css" />
+<!-- Optional skin (coming soon) -->
+<!-- <link rel="stylesheet" href="/node_modules/@uip/skin-vanilla/dist/drawer.css" /> -->
 <button id="toggle">Toggle Drawer</button>
 <div id="drawer" class="ui-drawer">Hello from Drawer!</div>
 
 <script type="module">
-  import { createDrawer } from '@uikit/core'
-  import { registerDrawerDrag } from '@uikit/vanilla' // optional
+  import { createDrawer } from "@uip/core";
+  import { registerDrawerDrag } from "@uip/plugin-gesture"; // optional
 
-  const drawer = createDrawer()
-  const root = document.getElementById('drawer')
+  const drawer = createDrawer();
+  const root = document.getElementById("drawer");
 
   // Basic toggle functionality
-  document.getElementById('toggle').addEventListener('click', drawer.toggle)
+  document.getElementById("toggle").addEventListener("click", drawer.toggle);
 
   // Accessibility + focus management + body scroll lock
-  const disposeContent = drawer.registerContent(root)
+  const disposeContent = drawer.registerContent(root);
 
-  // Optional mobile drag support
-  registerDrawerDrag(drawer, root, { axis: 'x', threshold: 0.3 })
+  // Optional mobile/desktop drag support
+  registerDrawerDrag(drawer, root, { axis: "x", threshold: 0.3 });
 
   // Reactive presentation updates
   drawer.onChange(({ isOpen }) => {
-    root.classList.toggle('ui-open', isOpen)
-  })
+    root.classList.toggle("ui-open", isOpen);
+  });
 </script>
 ```
 
 ### React
 
 ```jsx
-import '@uikit/skin-vanilla/dist/drawer.css'
-import { createDrawer } from '@uikit/core'
-import { useDrawer } from '@uikit/react'
-import { useEffect, useRef } from 'react'
-import { registerDrawerDrag } from '@uikit/vanilla'
+// Optional skin (coming soon)
+// import '@uip/skin-vanilla/dist/drawer.css'
+import { createDrawer } from "@uip/core";
+import { useDrawerRefs } from "@uip/adapter-react";
+import { useEffect, useRef } from "react";
+import { createGesturePlugin } from "@uip/plugin-gesture";
 
-const drawer = createDrawer()
+const plugin = createGesturePlugin({ axis: "x", threshold: 0.3 });
 
 export default function DrawerDemo() {
-  const d = useDrawer(drawer)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const disposeA11y = d.registerContent(ref.current)
-    const disposeDrag = registerDrawerDrag(drawer, ref.current)
-    return () => { 
-      disposeA11y()
-      disposeDrag && disposeDrag() 
-    }
-  }, [])
+  const { triggerRef, contentRef, ...d } = useDrawerRefs({}, [plugin]);
 
   return (
     <>
-      <button onClick={d.toggle}>Toggle Drawer</button>
-      <div 
-        ref={ref} 
-        className={`ui-drawer ${d.isOpen ? 'ui-open' : ''}`}
+      <button ref={triggerRef} onClick={d.toggle}>
+        Toggle Drawer
+      </button>
+      <div
+        ref={contentRef}
+        className={`ui-drawer ${d.isOpen ? "ui-open" : ""}`}
       >
         Hello from React Drawer!
       </div>
     </>
-  )
+  );
 }
 ```
 
@@ -149,29 +148,26 @@ export default function DrawerDemo() {
 
 ```svelte
 <script>
-  import '@uikit/skin-vanilla/dist/drawer.css'
-  import { createDrawer } from '@uikit/core'
-  import { drawerStore } from '@uikit/svelte'
+  // Optional skin (coming soon)
+  // import '@uip/skin-vanilla/dist/drawer.css'
+  import { createDrawer } from '@uip/core'
+  import { drawerStore, drawerContent, drawerTrigger, drawerDrag } from '@uip/adapter-svelte'
   import { onMount } from 'svelte'
-  import { registerDrawerDrag } from '@uikit/vanilla'
+  import { createGesturePlugin } from '@uip/plugin-gesture'
 
   const drawer = createDrawer()
   const d = drawerStore(drawer)
   let el
+  const plugin = createGesturePlugin({ axis: 'x' })
 
   onMount(() => {
-    const disposeA11y = drawer.registerContent(el)
-    const disposeDrag = registerDrawerDrag(drawer, el, { axis: 'x' })
-    return () => { 
-      disposeA11y()
-      disposeDrag && disposeDrag() 
-    }
+    // A11y handled by action below; no manual wiring needed here
   })
 </script>
 
-<button on:click={() => d.toggle()}>Toggle Drawer</button>
+<button use:drawerTrigger={drawer} on:click={() => d.toggle()}>Toggle Drawer</button>
 
-<div bind:this={el} class:ui-open={$d.isOpen} class="ui-drawer">
+<div bind:this={el} use:drawerContent={{ drawer }} use:drawerDrag={{ drawer, plugin }} class:ui-open={$d.isOpen} class="ui-drawer">
   Hello from Svelte Drawer!
 </div>
 ```
@@ -179,6 +175,7 @@ export default function DrawerDemo() {
 ## 🔌 Core API Reference
 
 ### Basic Usage
+
 ```javascript
 const drawer = createDrawer(options?)
 
@@ -196,23 +193,25 @@ drawer.onChange(fn) // subscribe to state changes; returns unsubscribe function
 ```
 
 ### Accessibility Helpers (Optional)
+
 ```javascript
 // Trigger element (button)
-drawer.registerTrigger(element) // adds aria-expanded + space/enter handlers
+drawer.registerTrigger(element); // adds aria-expanded + space/enter handlers
 
 // Content element (drawer)
-drawer.registerContent(element, { trap: true }) // focus trap, esc handler, body scroll lock
+drawer.registerContent(element, { trap: true }); // focus trap, esc handler, body scroll lock
 ```
 
 ### Lifecycle Hooks (Optional)
+
 ```javascript
-drawer.onOpenStart(fn)
-drawer.onOpenEnd(fn) 
-drawer.onCloseStart(fn)
-drawer.onCloseEnd(fn)
+drawer.onOpenStart(fn);
+drawer.onOpenEnd(fn);
+drawer.onCloseStart(fn);
+drawer.onCloseEnd(fn);
 ```
 
-> **Note**: The core never enforces DOM structure or styling. Use your own markup and CSS.
+> Note: Core doesn’t enforce DOM structure or styling. Bring your own markup and CSS.
 
 ## 🛠️ CLI Scaffolding
 
@@ -222,7 +221,7 @@ Generate ready-to-use components in your project:
 # React
 npx uikit add drawer --framework react --skin vanilla
 
-# Svelte  
+# Svelte
 npx uikit add drawer --framework svelte --skin vanilla
 
 # Vanilla JavaScript
@@ -230,6 +229,7 @@ npx uikit add drawer --framework vanilla --skin vanilla
 ```
 
 ### What it does:
+
 - ✅ Installs required packages
 - ✅ Generates a minimal, working demo component
 - ✅ Idempotent (won't overwrite without `--force` flag)
@@ -267,19 +267,24 @@ npx uikit add drawer --framework vanilla --skin vanilla
 ## 🗺️ Roadmap
 
 ### Core Primitives
+
 - Modal, Context Menu, Tooltip, Focus Trap (standalone)
 
 ### Developer Experience
+
 - Live playground: switch React/Svelte/Vanilla with one core
 - One-click export (zip for chosen framework/skin)
 
 ### Advanced Components
+
 - Command Palette, Date Range Picker, Virtualized List
 
 ### Framework Support
+
 - Additional adapters: Solid, Qwik, Web Components
 
 ### Documentation
+
 - RFC document for the interaction protocol
 
 ## 📝 License
@@ -289,15 +294,19 @@ MIT - Intended for broad reuse and embedding.
 ## ❓ FAQ
 
 ### Q: Does this replace UI libraries like shadcn?
+
 **A**: Different layer. This is the interaction core you can skin or wrap with any design system.
 
 ### Q: Do I have to use the provided skin/drag plugin?
+
 **A**: No. They're completely optional. Bring your own styles and animations.
 
 ### Q: Can I render content in a portal?
+
 **A**: Yes. The core makes no assumptions about DOM hierarchy.
 
 ### Q: Is TypeScript required?
+
 **A**: No. The core is JavaScript with JSDoc. TypeScript is available in framework adapters.
 
 ---

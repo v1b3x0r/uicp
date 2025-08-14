@@ -10,14 +10,14 @@ packages/
 │  └─ src/
 │     ├─ drawer/           # Modular drawer implementation
 │     │  ├─ index.js       # Main drawer logic
-│     │  ├─ focus-trap.js  # A11y focus management  
+│     │  ├─ focus-trap.js  # A11y focus management
 │     │  ├─ body-scroll-lock.js # Scroll utilities
 │     │  └─ events.js      # Event system
 │     └─ index.js          # Core exports
 │
 ├─ adapters/               # Framework bindings
 │  ├─ react/               # @uip/adapter-react (~1KB)
-│  ├─ svelte/              # @uip/adapter-svelte (~1KB) 
+│  ├─ svelte/              # @uip/adapter-svelte (~1KB)
 │  └─ vanilla/             # @uip/adapter-vanilla (~1KB)
 │
 ├─ plugins/                # Optional functionality
@@ -31,23 +31,27 @@ packages/
 ### 🚀 Developer Experience Improvements
 
 #### **1. Modular Imports**
+
 ```javascript
 // Tree-shakeable imports
-import { createDrawer } from '@uip/core';
-import { createGesturePlugin } from '@uip/plugin-gesture';  
-import { useDrawer } from '@uip/adapter-react';
+import { createDrawer } from "@uip/core";
+import { createGesturePlugin } from "@uip/plugin-gesture";
+import { useDrawerRefs } from "@uip/adapter-react";
 
-// Plugin composition
-const drawer = useDrawer({}, [createGesturePlugin()]);
+// Plugin composition (React)
+const { triggerRef, contentRef, ...d } = useDrawerRefs({}, [
+  createGesturePlugin(),
+]);
 ```
 
 #### **2. Framework Adapters**
+
 ```javascript
 // React
-const drawer = useDrawer({}, [gesturePlugin]);
+const { triggerRef, contentRef, ...d } = useDrawerRefs({}, [gesturePlugin]);
 
 // Svelte Stores
-const drawer = drawerStore({}, [gesturePlugin]);
+const d = drawerStore({}, [gesturePlugin]);
 
 // Svelte 5 Runes
 const reactive = createDrawerReactive({}, [gesturePlugin]);
@@ -58,12 +62,13 @@ const drawer = autoDrawer({}, [gesturePlugin]);
 ```
 
 #### **3. Plugin System**
+
 ```javascript
 // Create reusable plugins
 const gesturePlugin = createGesturePlugin({
-  axis: 'x',
+  axis: "x",
   threshold: 0.3,
-  onProgress: ({ progress }) => console.log(progress)
+  onProgress: ({ progress }) => console.log(progress),
 });
 
 // Apply to any drawer
@@ -73,33 +78,41 @@ const drawer = createDrawer({}, [gesturePlugin]);
 ### 💎 Architecture Benefits
 
 #### **Modularity**
+
 - Each primitive is self-contained
 - Plugins are optional extensions
 - Zero coupling between packages
 
 #### **Bundle Optimization**
+
 - Import only what you use
 - Each package < 2KB gzipped
 - Plugin lazy loading
 
-#### **Scalability** 
+#### **Scalability**
+
 - Add new primitives easily: Modal, Tooltip, Menu
 - Framework adapters follow same pattern
 - Plugin ecosystem ready
 
 #### **Developer Experience**
+
 - Consistent APIs across frameworks
 - Plugin composition
 - TypeScript ready structure
 
 ### 🔄 Migration Impact
 
-#### **Package Names Changed**
-- `@uikit/core` → `@uip/core`
-- `@uikit/svelte` → `@uip/adapter-svelte`  
-- New: `@uip/plugin-gesture`
+#### **Package Names**
+
+- Core/adapters/plugins use `@uip/*`
+- CLI remains `@uikit/cli`
+  - `@uip/core`
+  - `@uip/adapter-react`, `@uip/adapter-svelte`, `@uip/adapter-vanilla`
+  - `@uip/plugin-gesture`
 
 #### **Import Changes**
+
 ```diff
 - import { createDrawer } from '@uikit/core';
 + import { createDrawer } from '@uip/core';
@@ -111,6 +124,7 @@ const drawer = createDrawer({}, [gesturePlugin]);
 ```
 
 #### **API Improvements**
+
 ```diff
 // Svelte - Plugin integration
 - const drawer = drawerStore();
@@ -126,10 +140,11 @@ const drawer = createDrawer({}, [gesturePlugin]);
 **Before**: Monolithic, gesture mixed with core
 **After**: Modular, plugin-based, infinitely scalable
 
-**Bundle Size**: 
+**Bundle Size**:
+
 - Core: 2KB per primitive
 - Adapters: 1KB each
-- Plugins: 1KB each  
+- Plugins: 1KB each
 - Total: Choose what you need!
 
 **Scalability**: Ready for Modal, Tooltip, Menu, etc.

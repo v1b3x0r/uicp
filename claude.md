@@ -1,5 +1,7 @@
 # claude.md
 
+> Note: This is a planning/brainstorming doc. Some names and examples may be outdated. For current package names and APIs, see `README.md` and `ARCHITECTURE_V2.md`.
+
 ## Objective
 
 สร้างโปรเจ็กต์สาธิตแนวคิด **UI Interaction Protocol** ที่มีแกนกลางเล็ก เบา และใช้ซ้ำได้ข้ามเฟรมเวิร์ค โดยทำ PoC สำหรับ **Drawer** ที่:

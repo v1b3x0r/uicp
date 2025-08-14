@@ -46,12 +46,14 @@ UIKit เป็นชุดเครื่องมือสำหรับก�
 ### Basic persona details
 
 **นักพัฒนา Frontend มืออาชีพ**
+
 - มีประสบการณ์ 2-5 ปี
 - ทำงานกับหลายเฟรมเวิร์ค
 - ต้องการเครื่องมือที่ช่วยประหยัดเวลา
 - ให้ความสำคัญกับ accessibility และ performance
 
 **UI Engineer ผู้เชี่ยวชาญ**
+
 - มีประสบการณ์ 3+ ปี
 - ต้องการควบคุมรายละเอียดของ UI behavior
 - ทำงานกับ design systems
@@ -68,17 +70,20 @@ UIKit เป็นชุดเครื่องมือสำหรับก�
 ### High priority
 
 1. **Core drawer functionality**
+
    - เปิด/ปิด/toggle drawer ได้
    - รองรับ state management แบบ reactive
    - มี lifecycle events สำหรับการจัดการ animation
 
 2. **Accessibility support**
+
    - Focus trap เมื่อเปิด drawer
    - รองรับ keyboard navigation (ESC, Tab, Enter, Space)
    - ใช้ ARIA attributes ที่เหมาะสม
    - Body scroll lock
 
 3. **Cross-framework adapters**
+
    - Vanilla JavaScript helper
    - React hooks integration
    - Svelte store integration
@@ -91,11 +96,13 @@ UIKit เป็นชุดเครื่องมือสำหรับก�
 ### Medium priority
 
 1. **CLI scaffold tool**
+
    - คำสั่งติดตั้ง component พร้อมตัวอย่าง
    - รองรับหลายเฟรมเวิร์ค
    - ป้องกันการเขียนทับไฟล์
 
 2. **Optional styling**
+
    - CSS variables สำหรับ theming
    - ตัวอย่าง styling พื้นฐาน
 
@@ -107,6 +114,7 @@ UIKit เป็นชุดเครื่องมือสำหรับก�
 ### Low priority
 
 1. **Developer tools**
+
    - Bundle size monitoring
    - Performance profiling
    - Debug mode
@@ -127,11 +135,13 @@ UIKit เป็นชุดเครื่องมือสำหรับก�
 ### Core experience
 
 1. **เริ่มต้นใช้งาน**
+
    - ติดตั้งแพ็กเกจ core และ adapter
    - Import และสร้าง drawer instance
    - ผูกกับ DOM elements
 
 2. **พัฒนาและปรับแต่ง**
+
    - เพิ่ม event listeners
    - ปรับแต่ง gesture behavior
    - เพิ่ม styling
@@ -221,25 +231,29 @@ UIKit เป็นชุดเครื่องมือสำหรับก�
 ### Suggested phases
 
 **Phase 1: Core Foundation (1-2 สัปดาห์)**
+
 - ✅ Core drawer logic
-- ✅ Focus trap และ accessibility helpers  
+- ✅ Focus trap และ accessibility helpers
 - ✅ Body scroll lock
 - ✅ Basic gesture plugin
 - ✅ Unit tests
 
 **Phase 2: Framework Adapters (1 สัปดาห์)**
+
 - ✅ Vanilla JS adapter
 - ✅ React hooks adapter
 - ✅ Svelte store adapter
 - ✅ Integration tests
 
 **Phase 3: CLI และ Examples (1 สัปดาห์)**
+
 - ✅ CLI scaffold tool
 - ✅ Example projects (3 frameworks)
 - ✅ Basic styling package
 - ✅ End-to-end tests
 
 **Phase 4: Polish และ Documentation (1-2 สัปดาห์)**
+
 - ✅ Performance optimization
 - ✅ Documentation และ README
 - ✅ Bundle size analysis
@@ -248,25 +262,31 @@ UIKit เป็นชุดเครื่องมือสำหรับก�
 ## User stories
 
 ### US-001: Basic drawer creation
+
 **Description:** นักพัฒนาต้องการสร้าง drawer instance พื้นฐาน  
 **Acceptance criteria:**
-- สามารถ import `createDrawer` จาก `@uikit/core`
+
+- สามารถ import `createDrawer` จาก `@uip/core`
 - สามารถสร้าง drawer instance ด้วย `createDrawer()`
 - Instance มี properties: `isOpen`, `open()`, `close()`, `toggle()`
 - สามารถ subscribe การเปลี่ยนแปลง state ด้วย `onChange()`
 
 ### US-002: Trigger element registration
+
 **Description:** นักพัฒนาต้องการผูก HTML element เป็น trigger สำหรับเปิด/ปิด drawer  
 **Acceptance criteria:**
-- สามารถเรียก `registerTrigger(element)` 
+
+- สามารถเรียก `registerTrigger(element)`
 - Click ที่ element จะ toggle drawer
 - กด Enter หรือ Space ที่ element จะ toggle drawer
 - Element มี `aria-expanded` attribute ที่อัพเดทตาม state
 - Return cleanup function เพื่อ unregister
 
 ### US-003: Content element registration
+
 **Description:** นักพัฒนาต้องการผูก HTML element เป็น content area ของ drawer  
 **Acceptance criteria:**
+
 - สามารถเรียก `registerContent(element)`
 - Focus ถูก trap ภายใน element เมื่อ drawer เปิด
 - กด ESC จะปิด drawer
@@ -274,35 +294,44 @@ UIKit เป็นชุดเครื่องมือสำหรับก�
 - Body scroll ถูก lock เมื่อ drawer เปิด
 
 ### US-004: React hook integration
+
 **Description:** React developer ต้องการใช้ drawer ผ่าน hooks  
 **Acceptance criteria:**
-- สามารถ import `useDrawer` จาก `@uikit/react`
-- Hook รับ drawer instance เป็น parameter
+
+- สามารถ import `useDrawer` หรือ `useDrawerRefs` จาก `@uip/adapter-react`
+- ใช้งาน hook ได้โดยไม่ต้องสร้าง instance เอง (hook จัดการ state ให้)
 - Return object มี `isOpen`, `open`, `close`, `toggle`
 - State updates trigger React re-renders
 - Cleanup เมื่อ component unmount
+- (กรณีต้องผูก DOM refs) ใช้ `useDrawerRefs` เพื่อรับ `triggerRef` และ `contentRef`
 
 ### US-005: Svelte store integration
+
 **Description:** Svelte developer ต้องการใช้ drawer ผ่าน stores  
 **Acceptance criteria:**
-- สามารถ import `drawerStore` จาก `@uikit/svelte`
-- Store รับ drawer instance เป็น parameter
-- สามารถ subscribe กับ store
-- Store มี methods: `open`, `close`, `toggle`
-- ใช้ได้กับ Svelte reactivity
+
+- สามารถ import `drawerStore` และ Svelte actions (`drawerTrigger`, `drawerContent`, `drawerDrag`) จาก `@uip/adapter-svelte`
+- Store สร้าง drawer ภายในและให้ `subscribe` สำหรับสถานะ
+- Store มี methods: `open`, `close`, `toggle` และเข้าถึง core ผ่าน `store.drawer`
+- ใช้ actions กับ DOM โดยส่ง `{ drawer: store.drawer }`
+- ใช้ได้กับ Svelte reactivity (Svelte 4/5)
 
 ### US-006: Gesture-based controls
+
 **Description:** นักพัฒนาต้องการให้ผู้ใช้สามารถ drag เพื่อเปิด/ปิด drawer  
 **Acceptance criteria:**
-- สามารถ import gesture plugin
-- เรียก `registerDrawerDrag(core, element, options)`
+
+- สามารถ import gesture plugin จาก `@uip/plugin-gesture`
+- เรียก `registerDrawerDrag(drawer, element, options)`
 - รองรับ horizontal และ vertical drag
 - มี threshold สำหรับกำหนดเมื่อไหร่จะเปิด/ปิด
 - ส่ง progress values ในระหว่าง drag
 
 ### US-007: CLI installation
+
 **Description:** นักพัฒนาต้องการติดตั้ง drawer component ผ่าน CLI  
 **Acceptance criteria:**
+
 - สามารถรัน `npx uikit add drawer --framework react`
 - CLI ติดตั้งแพ็กเกจที่จำเป็น
 - สร้างไฟล์ตัวอย่างใน path ที่กำหนด
@@ -310,16 +339,20 @@ UIKit เป็นชุดเครื่องมือสำหรับก�
 - รองรับ vanilla, react, svelte frameworks
 
 ### US-008: Vanilla JavaScript usage
+
 **Description:** นักพัฒนาต้องการใช้ drawer ใน vanilla JavaScript project  
 **Acceptance criteria:**
-- สามารถ import จาก `@uikit/vanilla`
-- มี helper functions สำหรับ DOM manipulation
+
+- สามารถ import helpers จาก `@uip/adapter-vanilla`
+- มี helper functions สำหรับ DOM manipulation (`autoDrawer`, `createDOMDrawer`, `observeDrawer`, ฯลฯ)
 - ทำงานได้โดยไม่ต้องใช้ framework
 - มีตัวอย่างใน plain HTML file
 
 ### US-009: Keyboard accessibility
+
 **Description:** ผู้ใช้ keyboard-only ต้องการใช้งาน drawer ได้  
 **Acceptance criteria:**
+
 - Tab เพื่อเข้าถึง trigger element
 - Enter หรือ Space เพื่อเปิด drawer
 - Tab cycle ภายใน content เท่านั้นเมื่อ drawer เปิด
@@ -327,8 +360,10 @@ UIKit เป็นชุดเครื่องมือสำหรับก�
 - Focus กลับไปยัง trigger เมื่อปิด
 
 ### US-010: Mobile touch support
+
 **Description:** ผู้ใช้มือถือต้องการ drag เพื่อเปิด/ปิด drawer  
 **Acceptance criteria:**
+
 - รองรับ touch events (touchstart, touchmove, touchend)
 - Smooth animation ตาม finger movement
 - Velocity-based closing
@@ -336,17 +371,21 @@ UIKit เป็นชุดเครื่องมือสำหรับก�
 - ทำงานได้บน iOS และ Android
 
 ### US-011: State lifecycle management
+
 **Description:** นักพัฒนาต้องการ hook เข้ากับ drawer lifecycle events  
 **Acceptance criteria:**
+
 - สามารถ register `onOpenStart`, `onOpenEnd` callbacks
-- สามารถ register `onCloseStart`, `onCloseEnd` callbacks  
+- สามารถ register `onCloseStart`, `onCloseEnd` callbacks
 - Events fire ตามลำดับที่ถูกต้อง
 - สามารถ unregister callbacks
 - Support หลาย callbacks ต่อ event
 
 ### US-012: Body scroll locking
+
 **Description:** เมื่อ drawer เปิด page ด้านหลังไม่ควรสามารถ scroll ได้  
 **Acceptance criteria:**
+
 - Body scroll ถูก disable เมื่อ drawer เปิด
 - Scroll position ถูกรักษาไว้เมื่อ lock/unlock
 - ไม่เกิด layout shift จาก scrollbar
@@ -354,64 +393,80 @@ UIKit เป็นชุดเครื่องมือสำหรับก�
 - รองรับ nested scroll containers
 
 ### US-013: RTL support
+
 **Description:** นักพัฒนาต้องการใช้ drawer ใน RTL layout  
 **Acceptance criteria:**
+
 - Drawer เปิดจากทิศทางที่ถูกต้องใน RTL
 - Gesture direction สอดคล้องกับ RTL layout
 - ไม่ต้องเปลี่ยน JavaScript code
 - รองรับผ่าน CSS transforms
 
 ### US-014: Reduced motion support
+
 **Description:** ผู้ใช้ที่ prefer reduced motion ควรได้ experience ที่เหมาะสม  
 **Acceptance criteria:**
+
 - ตรวจ `prefers-reduced-motion` media query
 - ปิด animations เมื่อ user ตั้งค่า reduce motion
 - ยังคงมี functionality ครบถ้วน
 - Instant open/close แทน animation
 
 ### US-015: Memory cleanup
+
 **Description:** นักพัฒนาต้องการมั่นใจว่า drawer จะ cleanup resources เมื่อไม่ใช้  
 **Acceptance criteria:**
+
 - ทุก `register*` method return cleanup function
 - Event listeners ถูก remove เมื่อเรียก cleanup
 - ไม่มี memory leaks
 - Safe ต่อการ register/unregister หลายรอบ
 
 ### US-016: SSR compatibility
+
 **Description:** นักพัฒนาต้องการใช้ drawer ใน SSR environment  
 **Acceptance criteria:**
+
 - ไม่ error เมื่อ render บนเซิร์ฟเวอร์
 - Guard DOM APIs ด้วย environment checks
 - Hydration ทำงานได้ถูกต้อง
 - ไม่มี client-server mismatch
 
 ### US-017: Custom styling integration
+
 **Description:** นักพัฒนาต้องการปรับแต่ง appearance ของ drawer  
 **Acceptance criteria:**
+
 - ไม่บังคับ specific DOM structure
 - รองรับ CSS-in-JS libraries
 - มี optional CSS variables package
 - ไม่ interference กับ user styles
 
 ### US-018: Error handling and validation
+
 **Description:** นักพัฒนาต้องการ error messages ที่ชัดเจนเมื่อใช้งานผิด  
 **Acceptance criteria:**
+
 - Validate parameters ใน register methods
 - Clear error messages สำหรับ invalid usage
 - Fail gracefully เมื่อเกิด DOM errors
 - Console warnings สำหรับ deprecated usage
 
 ### US-019: Performance monitoring
+
 **Description:** นักพัฒนาต้องการทราบ performance impact ของ drawer  
 **Acceptance criteria:**
+
 - Bundle size < 4KB gzipped สำหรับ core
 - < 1KB gzipped สำหรับแต่ละ adapter
 - 60fps animations บนมือถือ
 - Minimal impact บน page load time
 
 ### US-020: Documentation and examples
+
 **Description:** นักพัฒนาต้องการเอกสารและตัวอย่างที่ครบถ้วน  
 **Acceptance criteria:**
+
 - Complete API documentation
 - Working examples สำหรับทุก framework
 - Quick start guide

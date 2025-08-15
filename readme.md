@@ -7,7 +7,7 @@ Universal UI Protocol (UIP) is a collection of 5 headless UI primitives with a u
 **🎯 What makes it universal:**
 - **5 Core Primitives**: Drawer, Modal, Tooltip, Popover, Menu - all working with the same API patterns
 - **Universal Plugins**: Gesture, Position, and Snap plugins work with any primitive
-- **Framework Agnostic**: Use with Vanilla JS, Svelte, React, or any framework
+- **Framework Agnostic**: Use with Vanilla JS, Svelte, or any framework
 - **TypeScript First**: Full type safety with comprehensive definitions
 
 ## 🏗️ Architecture
@@ -39,7 +39,7 @@ Universal UI Protocol (UIP) is a collection of 5 headless UI primitives with a u
 All primitives share the same consistent API pattern while being optimized for their specific use cases:
 
 | Primitive | Description | Use Cases |
-|-----------|-------------|-----------|
+|-----------|-------------|-----------|  
 | **Drawer** | Sliding panels | Navigation, filters, settings |
 | **Modal** | Overlay dialogs | Confirmations, forms, details |
 | **Tooltip** | Contextual info | Help text, status indicators |
@@ -530,7 +530,7 @@ registerPosition(menu, element, { position: 'contextual' });
 
 ### Q: Is this production ready?
 
-**A**: Yes. The architecture handles complex edge cases, includes comprehensive a11y support, and has been tested across browsers and devices.
+**A**: Yes. All 5 primitives are production-ready with comprehensive a11y support and cross-browser testing.
 
 ---
 

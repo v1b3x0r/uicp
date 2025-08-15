@@ -1,10 +1,10 @@
 {
-  "name": "@uikit/cli",
+  "name": "@uip/cli",
   "version": "1.0.0",
-  "description": "CLI tool for UIKit",
+  "description": "CLI tool for Universal UI Protocol",
   "type": "module",
   "bin": {
-    "uikit": "./src/index.js"
+    "uip": "./src/index.js"
   },
   "files": [
     "src",

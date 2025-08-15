@@ -8,15 +8,14 @@
     "build": "npm run build:core && npm run build:plugins && npm run build:adapters",
     "build:core": "cd packages/core && npm run build",
     "build:plugins": "cd packages/plugins/gesture && npm run build && cd ../direction && npm run build && cd ../snap && npm run build",
-    "build:adapters": "npm run build:adapter-react && npm run build:adapter-svelte && npm run build:adapter-vanilla",
-    "build:adapter-react": "cd packages/adapters/react && npm run build",
+    "build:adapters": "npm run build:adapter-svelte && npm run build:adapter-vanilla",
     "build:adapter-svelte": "cd packages/adapters/svelte && npm run build", 
     "build:adapter-vanilla": "cd packages/adapters/vanilla && npm run build",
     "dev:vanilla": "cd examples/vanilla && npm run dev",
-    "dev:react": "cd examples/react && npm run dev",
     "dev:svelte": "cd examples/svelte && npm run dev",
     "test": "vitest",
     "size": "size-limit",
+    "size:check": "npm run build && size-limit",
     "clean": "rm -rf packages/core/dist packages/plugins/*/dist packages/adapters/*/dist",
     "release": "npm run build && npm run test && npm run size"
   },
@@ -40,8 +39,40 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/uikit"
+    "url": "https://github.com/yourusername/uip"
   },
+  "size-limit": [
+    {
+      "path": "packages/core/dist/index.js",
+      "limit": "5 KB",
+      "name": "@uip/core"
+    },
+    {
+      "path": "packages/adapters/vanilla/dist/index.js",
+      "limit": "1 KB",
+      "name": "@uip/adapter-vanilla"
+    },
+    {
+      "path": "packages/adapters/svelte/dist/index.js",
+      "limit": "1 KB",
+      "name": "@uip/adapter-svelte"
+    },
+    {
+      "path": "packages/plugins/gesture/dist/index.js",
+      "limit": "2 KB",
+      "name": "@uip/plugin-gesture"
+    },
+    {
+      "path": "packages/plugins/position/dist/index.js",
+      "limit": "2 KB",
+      "name": "@uip/plugin-position"
+    },
+    {
+      "path": "packages/plugins/snap/dist/index.js",
+      "limit": "1.5 KB",
+      "name": "@uip/plugin-snap"
+    }
+  ],
   "license": "MIT",
   "author": "Your Name"
 }

@@ -1,262 +1,42 @@
 <script>
-  import Llc from "$lib/Llc.svelte";
+  import DrawerDemo from "$lib/DrawerDemo.svelte";
 </script>
 
-<div class="app">
-  <Llc />
+<svelte:head>
+  <title>UIP Svelte Demo</title>
+</svelte:head>
+
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b">
+    <div class="max-w-6xl mx-auto px-4 py-6">
+      <h1 class="text-3xl font-bold text-gray-900">Universal UI Protocol</h1>
+      <p class="text-gray-600 mt-1">Svelte Adapter Demo</p>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md">
+      <DrawerDemo />
+    </div>
+    
+    <!-- Info Section -->
+    <div class="mt-8 grid md:grid-cols-2 gap-6">
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="font-semibold text-lg mb-2">Quick Start</h3>
+        <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>npm i @uip/core @uip/adapter-svelte</code></pre>
+      </div>
+      
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="font-semibold text-lg mb-2">Features</h3>
+        <ul class="text-sm space-y-1 text-gray-600">
+          <li>✅ 5 Headless Primitives</li>
+          <li>✅ Universal Plugin System</li>
+          <li>✅ Full TypeScript Support</li>
+          <li>✅ Zero Dependencies</li>
+        </ul>
+      </div>
+    </div>
+  </main>
 </div>
-
-<style>
-  .app {
-    min-height: 100vh;
-    background: var(--surface-1);
-  }
-
-  /* Header */
-  .header {
-    position: relative;
-    background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
-    color: white;
-    overflow: hidden;
-  }
-
-  .header-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-4);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-
-  .title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0;
-    letter-spacing: -0.02em;
-  }
-
-  .badge {
-    background: rgba(255, 255, 255, 0.2);
-    padding: var(--space-1) var(--space-3);
-    border-radius: var(--radius-full);
-    font-size: 0.75rem;
-    font-weight: 600;
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .hero {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--space-12) var(--space-4) var(--space-16);
-    text-align: center;
-  }
-
-  .hero-title {
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 700;
-    margin: 0 0 var(--space-4) 0;
-    letter-spacing: -0.02em;
-  }
-
-  .hero-subtitle {
-    font-size: clamp(1rem, 2.5vw, 1.25rem);
-    opacity: 0.9;
-    line-height: 1.6;
-    max-width: 600px;
-    margin: 0 auto var(--space-8);
-  }
-
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: var(--space-6);
-    max-width: 400px;
-    margin: 0 auto;
-  }
-
-  .stat {
-    text-align: center;
-  }
-
-  .stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: var(--space-1);
-  }
-
-  .stat-label {
-    font-size: 0.875rem;
-    opacity: 0.8;
-  }
-
-  /* Navigation */
-  .demo-nav {
-    background: var(--surface-2);
-    border-bottom: 1px solid var(--border);
-    padding: var(--space-4);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    backdrop-filter: blur(12px);
-  }
-
-  .nav-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    gap: var(--space-2);
-    justify-content: center;
-  }
-
-  .nav-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-4) var(--space-5);
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-3);
-    cursor: pointer;
-    transition: all var(--duration-normal) var(--ease-out);
-    color: var(--text-2);
-    font-size: 14px;
-    min-width: 160px;
-  }
-
-  .nav-btn:hover {
-    background: var(--surface-3);
-    border-color: var(--border-2);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px var(--shadow-2);
-  }
-
-  .nav-btn.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--accent-text);
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
-  }
-
-  .nav-icon {
-    font-size: 1.25rem;
-    flex-shrink: 0;
-  }
-
-  .nav-content {
-    text-align: left;
-  }
-
-  .nav-title {
-    font-weight: 600;
-    line-height: 1.2;
-  }
-
-  .nav-desc {
-    font-size: 0.75rem;
-    opacity: 0.7;
-    line-height: 1.3;
-  }
-
-  .nav-btn.active .nav-desc {
-    opacity: 0.9;
-  }
-
-  /* Main Content */
-  .main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--space-8) var(--space-4);
-  }
-
-  .demo-container {
-    background: var(--surface-1);
-    border-radius: var(--radius-4);
-    box-shadow: 0 1px 3px var(--shadow-1);
-    border: 1px solid var(--border);
-    overflow: hidden;
-  }
-
-  /* Footer */
-  .footer {
-    background: var(--surface-2);
-    border-top: 1px solid var(--border);
-    margin-top: var(--space-20);
-  }
-
-  .footer-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-4);
-    text-align: center;
-  }
-
-  .footer-text {
-    color: var(--text-3);
-    font-size: 0.875rem;
-  }
-
-  .footer-link {
-    color: var(--accent);
-    text-decoration: none;
-    font-weight: 500;
-  }
-
-  .footer-link:hover {
-    text-decoration: underline;
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .header-content {
-      flex-direction: column;
-      gap: var(--space-4);
-    }
-
-    .nav-container {
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .nav-btn {
-      width: 100%;
-      max-width: 280px;
-      justify-content: center;
-    }
-
-    .stats {
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-4);
-    }
-
-    .main {
-      padding: var(--space-6) var(--space-3);
-    }
-  }
-
-  @media (max-width: 480px) {
-    .nav-btn {
-      padding: var(--space-3) var(--space-4);
-      min-width: 140px;
-    }
-
-    .nav-icon {
-      font-size: 1.125rem;
-    }
-
-    .stats {
-      gap: var(--space-3);
-    }
-
-    .stat-value {
-      font-size: 1.25rem;
-    }
-  }
-</style>

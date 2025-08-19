@@ -2,134 +2,216 @@
 
 ## Project Overview
 
-**Universal UI Protocol (UIP)** - A collection of 5 headless UI primitives with a universal plugin system. This project demonstrates a production-ready implementation of framework-agnostic UI components.
+**Universal UI Protocol (UIP)** - A revolutionary approach to UI development that treats interfaces as standardized protocols rather than components. Build universal primitives once, use everywhere.
 
-## Current Implementation Status
+## Current Status: v0.x (Pre-Release)
 
-### ✅ Completed Features
+### 🎯 Core Philosophy
+"Every UI is just **State + Transitions + Interactions**"
 
-1. **5 Core Primitives** (in `packages/core/src/primitives/`)
-   - Drawer - Sliding panels with gesture support
-   - Modal - Overlay dialogs with backdrop
-   - Tooltip - Contextual information displays
-   - Popover - Rich floating content containers
-   - Menu - Context menus with keyboard navigation
+UIP reduces all UI patterns to three fundamental concepts:
+- **State**: Reactive data that defines the current condition
+- **Transitions**: How state changes over time with animations
+- **Interactions**: How users manipulate state through gestures and input
 
-2. **Universal Plugin System** (in `packages/plugins/`)
-   - Gesture - Touch/mouse drag interactions
-   - Position - Smart positioning and placement
-   - Snap - Dynamic sizing with snap points
-   - Direction - RTL/LTR support
+### ✅ Implementation Status
 
-3. **Framework Adapters** (in `packages/adapters/`)
-   - Vanilla JS - DOM helpers and utilities
-   - Svelte - Store-based reactive adapter
+#### Core Protocol (Experimental)
+- **State Management System** ✅ - Reactive state with computed properties  
+- **Event System** ✅ - Universal event emitters for all primitives
+- **Plugin Architecture** ✅ - Extensible system for behavior enhancement
+- **5 Base Primitives** ✅ - Drawer, Modal, Tooltip, Popover, Menu
 
-4. **Shared Utilities** (in `packages/core/src/utils/`)
-   - Focus trap - Keyboard navigation and focus management
-   - Scroll lock - Body scroll prevention without layout shift
-   - Event system - Unified event handling
+#### Universal Plugin System
+- **Gesture Plugin** ✅ - Touch/mouse drag interactions across all primitives
+- **Animation Plugin** 🚧 - Smooth transitions and physics (in development)
+- **Accessibility Plugin** ✅ - ARIA, focus management, keyboard navigation
+- **Persistence Plugin** 🚧 - State preservation across sessions
+
+#### Framework Adapters (0.x Compatible)
+- **Vanilla JS Adapter** ✅ - Direct DOM manipulation helpers
+- **Svelte Adapter** ✅ - Store-based reactive integration
+- **React Adapter** ⏳ - Hooks-based integration (planned)
+- **Vue Adapter** ⏳ - Composables integration (planned)
+
+#### Shared Infrastructure
+- **Focus Management** ✅ - Smart focus trapping and restoration
+- **Scroll Lock** ✅ - Body scroll prevention without layout shift
+- **Smart Positioning** 🚧 - Viewport-aware auto-positioning
 
 ## Technical Architecture
 
+### Protocol-First Design
 ```
-@uip/core (5 primitives)
-    ├── Consistent API pattern across all primitives
-    ├── Zero runtime dependencies
-    ├── Full TypeScript definitions
-    └── Comprehensive a11y support
+User Interface = State + Transitions + Interactions
 
-@uip/plugins/* (Universal plugins)
-    ├── Work with any primitive type
-    ├── Auto-detect primitive capabilities
-    └── Tree-shakeable
-
-@uip/adapter-* (Framework adapters)
-    ├── Thin wrappers around core
-    ├── Framework-specific reactivity
-    └── Maintain core API consistency
+    ┌─────────────────┐
+    │  Presentation   │  ← Your Framework/CSS
+    │     Layer       │
+    └─────────┬───────┘
+              │
+    ┌─────────▼───────┐
+    │   UIP Protocol  │  ← Universal State Management
+    │   Primitives    │     (Framework Agnostic)
+    └─────────┬───────┘
+              │
+    ┌─────────▼───────┐
+    │  Plugin Layer   │  ← Behavior Enhancement
+    │  Gestures, A11y │     (Optional & Composable)
+    └─────────────────┘
 ```
 
-## Package Structure
+### State Protocol
+Every primitive follows the same state pattern:
+```javascript
+{
+  value: any,              // Primary state (isOpen, selectedIndex, etc.)
+  status: string,          // State machine status
+  interaction?: {          // Live interaction data
+    type: string,
+    progress: number,
+    position: {x, y},
+    velocity: {x, y}
+  },
+  transition?: {           // Animation state
+    from: any,
+    to: any,
+    progress: number,
+    duration: number
+  },
+  computed: {},            // Derived properties
+  meta: {}                 // Custom metadata
+}
+```
+
+### Universal Plugin System
+Plugins auto-detect primitive types and apply appropriate behavior:
+```javascript
+// Same plugin works across all compatible primitives
+registerGesture(drawer, element, { axis: 'x' });    // Horizontal swipe
+registerGesture(modal, element, { axis: 'y' });     // Vertical pull-to-close
+registerGesture(tooltip, element);                  // Auto-skipped (unsupported)
+```
+
+## Package Structure (v0.x)
 
 ```
 packages/
-├── core/                    # @uip/core - All 5 primitives
+├── core/                    # @uip/core v0.x - Protocol implementation
 │   ├── src/
 │   │   ├── primitives/     # drawer, modal, tooltip, popover, menu
-│   │   ├── utils/          # focus-trap, scroll-lock, events
-│   │   └── types.d.ts
+│   │   ├── base/           # UIPrimitive base class
+│   │   ├── state/          # Reactive state management
+│   │   ├── events/         # Universal event system
+│   │   └── types.d.ts      # Core type definitions
 │   └── package.json
-├── adapters/
-│   ├── vanilla/            # @uip/adapter-vanilla
-│   └── svelte/             # @uip/adapter-svelte
 ├── plugins/
-│   ├── gesture/            # @uip/plugin-gesture
-│   ├── position/           # @uip/plugin-position
-│   ├── snap/               # @uip/plugin-snap
-│   └── direction/          # @uip/plugin-direction
-└── cli/                    # @uip/cli (scaffold tool)
+│   ├── gesture/            # @uip/plugin-gesture v0.x
+│   ├── animate/            # @uip/plugin-animate v0.x (WIP)
+│   ├── a11y/               # @uip/plugin-a11y v0.x
+│   └── persist/            # @uip/plugin-persist v0.x (planned)
+├── adapters/
+│   ├── vanilla/            # @uip/adapter-vanilla v0.x
+│   ├── svelte/             # @uip/adapter-svelte v0.x
+│   ├── react/              # @uip/adapter-react v0.x (planned)
+│   └── vue/                # @uip/adapter-vue v0.x (planned)
+└── examples/
+    ├── vanilla/            # Vanilla JS demos
+    └── svelte/             # Svelte demos
 ```
 
 ## Development Guidelines
 
-### Core Principles
+### Core Principles (v0.x)
 
-1. **Separation of Concerns**
-   - Core handles logic and state
-   - Presentation layer is user's responsibility
-   - Adapters provide framework integration
+1. **Protocol Over Components**
+   - Focus on state management contracts
+   - Presentation is always user-controlled
+   - Framework adapters provide integration only
 
-2. **Universal API Pattern**
+2. **Universal API Consistency**
    ```javascript
-   // Every primitive follows this pattern
+   // Every primitive follows this exact pattern
    const primitive = createPrimitive(options);
-   primitive.open();
-   primitive.close();
-   primitive.toggle();
-   primitive.onChange(callback);
-   primitive.registerTrigger(element);
-   primitive.registerContent(element);
+   primitive.set('value', newValue);
+   primitive.get('value');
+   primitive.on('change', callback);
+   primitive.use(plugin);
    ```
 
-3. **Plugin Compatibility**
-   - Plugins detect primitive type via `_type` property
-   - Gracefully handle unsupported primitives
-   - Maintain immutability of core state
+3. **Plugin Universality**
+   - Plugins work across compatible primitive types
+   - Auto-detection of primitive capabilities
+   - Graceful degradation for unsupported features
 
-### Testing Requirements
+4. **Zero Breaking Changes Policy (Pre-v1.0)**
+   - All v0.x changes are additive only
+   - Deprecated features get clear migration paths
+   - Semantic versioning strictly followed
 
-- Unit tests for state management
-- Integration tests for primitive interactions
-- E2E tests for accessibility features
+### Implementation Standards
+
+#### State Management
+- Use reactive state with computed properties
+- Emit events on all state changes
+- Support time-travel debugging in dev mode
+- Maintain immutable state updates
+
+#### Plugin Development
+- Plugins must be pure functions returning cleanup
+- Auto-detect primitive type via `primitive._type`
+- Handle unsupported primitives gracefully
+- Provide TypeScript definitions
+
+#### Testing Requirements
+- Unit tests for all state transitions
+- Integration tests for plugin interactions
+- E2E tests for accessibility compliance
 - Cross-browser testing (last 2 versions + iOS Safari 14+)
 
-### Bundle Size Targets
+### Bundle Size Targets (v0.x)
 
-- `@uip/core`: ~4-5 KB gzipped (all 5 primitives)
-- Individual adapters: ~1 KB gzipped each
+- `@uip/core`: ~3 KB gzipped (base protocol + 5 primitives)
 - Individual plugins: ~1-2 KB gzipped each
-- Total for typical setup: ~7-8 KB gzipped
+- Framework adapters: ~1 KB gzipped each
+- **Total typical setup**: ~6-8 KB gzipped
 
-## Roadmap (from README.md)
+Compare to existing solutions:
+- Radix UI: ~45 KB
+- Headless UI: ~35 KB
+- Arco Design: ~200 KB
 
-### Next Phase - Framework Expansion
-- [ ] React adapter (`@uip/adapter-react`)
-- [ ] Qwik adapter
-- [ ] Solid adapter
+## Roadmap to v1.0
+
+### Phase 1: Protocol Stabilization (Current - v0.3)
+- [ ] Finalize State Protocol specification
+- [ ] Complete Animation Plugin with physics
+- [ ] Add comprehensive TypeScript definitions
+- [ ] Stabilize Plugin API contracts
+
+### Phase 2: Framework Expansion (v0.4-v0.6)
+- [ ] React adapter with hooks integration
+- [ ] Vue adapter with composables
+- [ ] Solid adapter with signals
 - [ ] Web Components adapter
 
-### Advanced Primitives
-- [ ] Command Palette
-- [ ] Date Range Picker
-- [ ] Virtualized List
-- [ ] Combobox/Select
+### Phase 3: Advanced Primitives (v0.7-v0.8)
+- [ ] Tabs with drag-to-select support
+- [ ] Slider with multi-handle support
+- [ ] Select with virtual scrolling
+- [ ] Date picker with calendar navigation
 
-### Developer Experience
-- [ ] Live playground with framework switching
-- [ ] Storybook integration
-- [ ] Design system templates
-- [ ] Migration guides
+### Phase 4: Production Readiness (v0.9)
+- [ ] Performance optimizations
+- [ ] Developer tools and debugging
+- [ ] Comprehensive documentation
+- [ ] Real-world testing and feedback
+
+### v1.0: Stable Protocol Release
+- [ ] Locked API with semantic versioning
+- [ ] Production-ready performance
+- [ ] Full framework ecosystem support
+- [ ] Enterprise support and migration tools
 
 ## Commands
 
@@ -141,14 +223,17 @@ npm install
 # Build all packages
 npm run build
 
-# Development mode
+# Development mode with watch
 npm run dev
 
-# Run tests
+# Run comprehensive test suite
 npm test
 
 # Check bundle sizes
 npm run size
+
+# Protocol compliance check
+npm run lint:protocol
 ```
 
 ### Examples
@@ -162,19 +247,32 @@ npm run dev:svelte
 
 ## Contributing
 
-1. All primitives must follow the universal API pattern
-2. New primitives go in `packages/core/src/primitives/`
-3. Plugins must work universally across primitive types
-4. Maintain zero runtime dependencies in core
-5. Include TypeScript definitions
-6. Add comprehensive tests
-7. Update this document with implementation details
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines on:
+- Protocol compliance requirements
+- Plugin development standards
+- Testing strategies and requirements
+- Documentation standards
 
 ## Notes for AI Assistants
 
-- **README.md** is the single source of truth for project vision and public API
-- This file (CLAUDE.md) documents the actual implementation
-- All 5 primitives are fully implemented and production-ready
-- React adapter is planned but not yet implemented
-- Focus on maintaining consistency across the universal API pattern
-- When adding features, ensure they work with all existing primitives
+- **This is v0.x** - Breaking changes are expected and encouraged
+- **Protocol-first approach** - State management is more important than components
+- **README.md** contains public API and marketing content
+- **This file** contains implementation details and development guidelines
+- Focus on universal compatibility rather than framework-specific optimizations
+- Prioritize developer experience over feature completeness in v0.x phase
+
+## Architecture References
+
+- **PROTOCOL.md** - Detailed protocol specifications and contracts
+- **ARCHITECTURE.md** - System design and component relationships
+- **examples/** - Reference implementations and best practices
+
+## Version Strategy
+
+- **0.1.x** - Core protocol development
+- **0.2.x** - Plugin system stabilization  
+- **0.3.x** - Framework adapter expansion
+- **0.4.x** - Advanced primitive development
+- **0.9.x** - Production readiness testing
+- **1.0.0** - Stable protocol release with LTS support

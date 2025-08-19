@@ -1,26 +1,36 @@
 <script>
   import { createDrawer } from "@uip/core";
-  import {
-    createDrawerStore,
-    drawerTrigger,
-    drawerContent,
-  } from "@uip/adapter-svelte";
+  import { drawerTrigger, drawerContent } from "@uip/adapter-svelte";
 
-  const core = createDrawer();
-  const store = createDrawerStore(); // หรือ createPrimitiveStore(core)
-
-  let s = $state(core.getState());
-  const stop = core.onChange((v) => {
-    s = v;
+  const drawer = createDrawer();
+  let isOpen = $state(drawer.getState().isOpen);
+  
+  drawer.onChange(({ isOpen: open }) => {
+    isOpen = open;
   });
-  // onDestroy(() => stop())
 </script>
 
-<button use:drawerTrigger={core} onclick={() => store.toggle()}> Open </button>
+<!-- Add Tailwind CDN -->
+<svelte:head>
+  <script src="https://cdn.tailwindcss.com"></script>
+</svelte:head>
 
-<div
-  use:drawerContent={{ drawer: core, options: { trapFocus: true } }}
-  class:open={s.isOpen}
+<button use:drawerTrigger={drawer} class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+  Open
+</button>
+
+<div 
+  use:drawerContent={drawer}
+  class="fixed top-0 left-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 z-50
+         {isOpen ? 'translate-x-0' : '-translate-x-full'}"
 >
-  Drawer content
+  <div class="p-4">
+    <button onclick={() => drawer.close()} class="text-2xl hover:text-gray-600 float-right">✕</button>
+    <h3 class="text-lg font-semibold mb-2">Drawer Content</h3>
+    <p class="text-gray-600">Clean and simple with Tailwind!</p>
+  </div>
 </div>
+
+{#if isOpen}
+  <div onclick={() => drawer.close()} class="fixed inset-0 bg-black/50 z-40"></div>
+{/if}

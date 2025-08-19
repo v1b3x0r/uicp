@@ -4,14 +4,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug"
   },
   "dependencies": {
-    "@uip/core": "file:../../packages/core",
-    "@uip/adapter-vanilla": "file:../../packages/adapters/vanilla",
-    "@uip/plugin-gesture": "file:../../packages/plugins/gesture"
+    "@uip/adapter-vanilla": "file:../../packages/adapters/vanilla"
   },
   "devDependencies": {
-    "vite": "^7.1.0"
+    "vite": "^7.1.0",
+    "@playwright/test": "^1.49.0"
   }
 }

@@ -18,22 +18,28 @@ import {
 // Generic store (เขียนครั้งเดียว)
 // ---------------------------
 /**
- * Create a Svelte store that mirrors a UIP core primitive.
- * @param {Object} core - core primitive instance
+ * Create a Svelte store that mirrors a UIP primitive using modern API.
+ * @param {Object} primitive - UIPrimitive instance  
  * @returns {Object} Svelte store + pass-through methods
  */
-export function createPrimitiveStore(core) {
-  if (!core) throw new Error('core primitive required')
+export function createPrimitiveStore(primitive) {
+  if (!primitive) throw new Error('UIP primitive required')
+  if (!primitive._type) throw new Error('Invalid UIP primitive - missing _type')
 
-  const { subscribe, set } = writable(core.getState())
-  const unsub = core.onChange(set)
+  // Get initial state using modern API
+  const { subscribe, set } = writable(primitive.get())
+  
+  // Subscribe to state changes using modern event system
+  const unsub = primitive.on('valueChange', () => {
+    set(primitive.get());
+  })
 
   return {
     subscribe,
-    ...core,
+    ...primitive,
     destroy: () => {
       unsub()
-      core.destroy?.()
+      primitive.destroy?.()
     },
   }
 }
@@ -54,22 +60,24 @@ function warnNoop(name) {
  */
 function createAction(method, passOptions = false) {
   return (node, params) => {
-    let core = params?.drawer || params
-    if (!core?.[method]) return warnNoop(method)
+    // Support both old (params.drawer) and new (params) format
+    let primitive = params?.drawer || params?.primitive || params
+    if (!primitive?.[method]) return warnNoop(method)
 
     let dispose = passOptions
-      ? core[method](node, params?.options || {})
-      : core[method](node)
+      ? primitive[method](node, params?.options || {})
+      : primitive[method](node)
 
     return {
       update(newParams) {
-        const next = newParams?.drawer || newParams
-        if (next === core) return
+        const next = newParams?.drawer || newParams?.primitive || newParams
+        if (next === primitive) return
         dispose()
-        core = next
+        primitive = next
+        if (!primitive?.[method]) return warnNoop(method)
         dispose = passOptions
-          ? core[method](node, newParams?.options || {})
-          : core[method](node)
+          ? primitive[method](node, newParams?.options || {})
+          : primitive[method](node)
       },
       destroy() {
         dispose()
@@ -85,17 +93,18 @@ function createAction(method, passOptions = false) {
 function createScanAction() {
   return (node, params) => {
     if (typeof document === 'undefined') return warnNoop('scan')
-    let core = params?.drawer || params
-    if (!core?.autoScan) return warnNoop('scan')
+    let primitive = params?.drawer || params?.primitive || params
+    if (!primitive?.autoScan) return warnNoop('scan')
 
-    let dispose = core.autoScan(node)
+    let dispose = primitive.autoScan(node)
     return {
       update(newParams) {
-        const next = newParams?.drawer || newParams
-        if (next === core) return
+        const next = newParams?.drawer || newParams?.primitive || newParams
+        if (next === primitive) return
         dispose()
-        core = next
-        dispose = core.autoScan(node)
+        primitive = next
+        if (!primitive?.autoScan) return warnNoop('scan')
+        dispose = primitive.autoScan(node)
       },
       destroy() {
         dispose()

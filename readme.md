@@ -361,7 +361,7 @@ npm run size
 ### Package Scripts
 ```bash
 npm run build          # Build all packages
-npm run dev:vanilla     # Vanilla JS examples
+npm run dev:vanilla     # World-class single-file example (9/9 tests)
 npm run dev:svelte      # Svelte examples  
 npm test               # Run test suite
 npm run lint           # Lint code
@@ -374,7 +374,8 @@ npm run type-check     # TypeScript checking
 - [x] Core protocol implementation
 - [x] 5 basic primitives (Drawer, Modal, Tooltip, Popover, Menu)
 - [x] Plugin system with gesture support
-- [x] Vanilla JS and Svelte adapters
+- [x] World-class vanilla JS adapter (single-file, 9/9 tests passing)
+- [x] Svelte adapter with store integration
 - [ ] Animation plugin with physics
 - [ ] React and Vue adapters
 

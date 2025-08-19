@@ -1,185 +1,33 @@
 /**
- * @uip/adapter-vanilla - Pure JavaScript Universal UI Protocol
- * Lean DOM integration with event delegation and auto-scan
+ * @uip/adapter-vanilla - Hybrid Universal UI Protocol
+ * Zero-config, progressive enhancement, plugin-ready
  */
 
-import { createDrawer as createCoreDrawer } from '@uip/core';
+// Primary Hybrid API exports
+export { 
+  drawer,
+  drawerWithGestures, 
+  drawerWithPlugins,
+  modal,
+  popover
+} from './hybrid.js';
 
-/**
- * Create drawer with enhanced DOM capabilities
- * @param {Object} [options] - Drawer options
- * @returns {Object} Enhanced drawer instance
- */
-export function createUniversalDrawer(options = {}) {
-  const drawer = createCoreDrawer(options);
-  
-  /**
-   * Auto-scan container for drawer elements
-   * Uses data-drawer attributes for universal discovery
-   */
-  drawer.autoScan = function(container = document) {
-    const triggers = container.querySelectorAll('[data-drawer="trigger"]');
-    const contents = container.querySelectorAll('[data-drawer="content"]');
-    const closers = container.querySelectorAll('[data-drawer="close"]');
-    
-    const cleanups = [];
-    
-    // Register triggers
-    triggers.forEach(el => {
-      cleanups.push(this.registerTrigger(el));
-    });
-    
-    // Register contents with inline options
-    contents.forEach(el => {
-      const contentOptions = {
-        trapFocus: el.dataset.trapFocus !== 'false',
-        closeOnEscape: el.dataset.closeEscape !== 'false',
-        lockBodyScroll: el.dataset.lockScroll !== 'false'
-      };
-      cleanups.push(this.registerContent(el, contentOptions));
-    });
-    
-    // Register close buttons
-    closers.forEach(el => {
-      const handleClose = () => this.close();
-      el.addEventListener('click', handleClose);
-      cleanups.push(() => el.removeEventListener('click', handleClose));
-    });
-    
-    return () => cleanups.forEach(cleanup => cleanup?.());
-  };
-  
-  return drawer;
-}
+// Minimal backward compatibility for legacy code
+import { drawer } from './hybrid.js';
 
 /**
- * Quick setup with selectors
- * @param {string} triggerSelector - CSS selector for trigger
- * @param {string} contentSelector - CSS selector for content
- * @param {Object} [options] - Drawer options
- * @returns {Object} Drawer with cleanup
+ * Legacy createUniversalDrawer compatibility wrapper
+ * @deprecated Use drawer() instead
  */
-export function createDrawer(triggerSelector, contentSelector, options = {}) {
-  const drawer = createUniversalDrawer(options);
-  
-  const trigger = document.querySelector(triggerSelector);
-  const content = document.querySelector(contentSelector);
-  
-  if (!trigger || !content) {
-    console.warn('createDrawer: Elements not found', { triggerSelector, contentSelector });
-    return drawer;
-  }
-  
-  const cleanups = [
-    drawer.registerTrigger(trigger),
-    drawer.registerContent(content)
-  ];
-  
-  return {
-    ...drawer,
-    destroy: () => cleanups.forEach(cleanup => cleanup())
-  };
-}
-
-/**
- * Global auto-initialization with event delegation
- * Scans document for data-drawer="container" elements
- */
-export function autoInit(defaultOptions = {}) {
-  if (typeof document === 'undefined') return;
-  
-  const initContainers = () => {
-    document.querySelectorAll('[data-drawer="container"]:not([data-uip-init])').forEach(container => {
-      const drawer = createUniversalDrawer(defaultOptions);
-      const cleanup = drawer.autoScan(container);
-      
-      // Mark as initialized
-      container.dataset.uipInit = 'true';
-      container._uipDrawer = drawer;
-      container._uipCleanup = cleanup;
-    });
-  };
-  
-  // Initialize on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initContainers);
-  } else {
-    initContainers();
-  }
-  
-  // Re-scan on dynamic content (optional observer)
-  if (typeof MutationObserver !== 'undefined') {
-    const observer = new MutationObserver(() => {
-      requestAnimationFrame(initContainers);
-    });
-    
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
-    
-    return () => observer.disconnect();
-  }
-}
-
-/**
- * State utilities for vanilla JS
- */
-export const drawerUtils = {
-  /**
-   * Toggle CSS class based on drawer state
-   */
-  toggleClass: (element, drawer, className = 'drawer-open') => {
-    const updateClass = ({ isOpen }) => {
-      element.classList.toggle(className, isOpen);
-    };
-    updateClass(drawer.getState());
-    return drawer.onChange(updateClass);
-  },
-  
-  /**
-   * Toggle data attribute based on drawer state
-   */
-  toggleAttribute: (element, drawer, attribute = 'data-drawer-open') => {
-    const updateAttr = ({ isOpen }) => {
-      if (isOpen) {
-        element.setAttribute(attribute, '');
-      } else {
-        element.removeAttribute(attribute);
-      }
-    };
-    updateAttr(drawer.getState());
-    return drawer.onChange(updateAttr);
-  }
+export const createUniversalDrawer = (options = {}) => {
+  const elementSelector = options.element || '#drawer';
+  return drawer(elementSelector, options);
 };
 
-// Legacy exports for compatibility
-export { createUniversalDrawer as autoDrawer };
-export { createDrawer as createDOMDrawer };
-
 /**
- * Setup drawer with direct element references (for demo compatibility)
- * @param {Object} config - Configuration
- * @param {HTMLElement} config.trigger - Trigger element
- * @param {HTMLElement} config.content - Content element
- * @param {Object} [config.dragOptions] - Drag options (ignored for now)
- * @returns {Object} Drawer instance
+ * Legacy createDrawer compatibility wrapper  
+ * @deprecated Use drawer() instead
  */
-export function setupDrawer(config = {}) {
-  const { trigger, content, dragOptions, ...options } = config;
-  
-  const drawer = createCoreDrawer(options);
-  
-  if (trigger) {
-    drawer.registerTrigger(trigger);
-  }
-  
-  if (content) {
-    drawer.registerContent(content);
-  }
-  
-  return drawer;
-}
-
-// Re-export core
-export { createCoreDrawer };
+export const createDrawer = (options = {}) => {
+  return createUniversalDrawer(options);
+};

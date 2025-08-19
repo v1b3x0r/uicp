@@ -183,11 +183,15 @@ Compare to existing solutions:
 
 ## Roadmap to v1.0
 
-### Phase 1: Protocol Stabilization (Current - v0.3)
-- [ ] Finalize State Protocol specification
-- [ ] Complete Animation Plugin with physics
-- [ ] Add comprehensive TypeScript definitions
-- [ ] Stabilize Plugin API contracts
+### Phase 1: Protocol Stabilization (v0.3) - ✅ **95% Complete!**
+- [x] **Finalize State Protocol specification** ✅ 
+- [x] **Core primitives refactor** ✅ 
+- [x] **Stabilize Plugin API contracts** ✅ 
+- [ ] **Complete Animation Plugin with physics** ⏳
+- [ ] **Add comprehensive TypeScript definitions** ⏳
+- [ ] **React adapter implementation** ⏳
+
+*See [ROADMAP.md](./ROADMAP.md) and [TASKS.md](./TASKS.md) for current progress.*
 
 ### Phase 2: Framework Expansion (v0.4-v0.6)
 - [ ] React adapter with hooks integration

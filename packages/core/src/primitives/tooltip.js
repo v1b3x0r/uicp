@@ -1,248 +1,309 @@
 /**
- * @uip/core - Tooltip Primitive
- * Contextual information on hover/focus
+ * @uip/core - Tooltip Primitive (Protocol v0.x)
+ * Contextual information implementing Universal UI Protocol
  */
 
-import { createEventSystem } from '../utils/events.js';
+import { UIPrimitive } from '../base/UIPrimitive.js';
 
 /**
- * Create tooltip instance
- * @param {Object} options - Tooltip options
- * @param {Array} plugins - Optional plugins
- * @returns {Object} Tooltip API
+ * Tooltip Primitive Class
+ * Extends UIPrimitive with tooltip-specific behavior
  */
-export function createTooltip(options = {}, plugins = []) {
-  const { 
-    initialOpen = false,
-    onStateChange,
-    delay = 200,
-    hideDelay = 0
-  } = options;
-  
-  let isOpen = initialOpen;
-  let showTimeout = null;
-  let hideTimeout = null;
-  const events = createEventSystem();
-  
-  // Add initial change listener
-  if (onStateChange) {
-    events.onChange(onStateChange);
+class TooltipPrimitive extends UIPrimitive {
+  constructor(options = {}) {
+    const {
+      initialOpen = false,
+      delay = 200,
+      hideDelay = 0,
+      position = 'top',
+      interactive = false,
+      ...restOptions
+    } = options;
+    
+    super({
+      _type: 'tooltip',
+      value: {
+        isOpen: initialOpen,
+        position
+      },
+      computed: {
+        // Computed properties for tooltip state
+        cssOpacity: (state) => state.value.isOpen ? '1' : '0',
+        cssVisibility: (state) => state.value.isOpen ? 'visible' : 'hidden',
+        cssPointerEvents: (state) => state.meta.interactive && state.value.isOpen ? 'auto' : 'none'
+      },
+      meta: {
+        delay,
+        hideDelay,
+        interactive
+      },
+      ...restOptions
+    });
+    
+    // Internal timeout management
+    this._showTimeout = null;
+    this._hideTimeout = null;
   }
   
-  const tooltip = {
-    // Type identification for plugins
-    _type: 'tooltip',
-    _instanceId: Math.random().toString(36).substring(2, 9),
+  /**
+   * Convenience getter for isOpen
+   */
+  get isOpen() {
+    return this.get('value.isOpen');
+  }
+  
+  /**
+   * Open tooltip with delay
+   */
+  open() {
+    if (this.isOpen) return;
     
-    get isOpen() {
-      return isOpen;
-    },
+    // Clear any pending hide
+    if (this._hideTimeout) {
+      clearTimeout(this._hideTimeout);
+      this._hideTimeout = null;
+    }
     
-    getState() {
-      return { isOpen };
-    },
+    const delay = this.get('meta.delay');
     
-    open() {
-      if (isOpen) return;
-      
-      // Clear any pending hide
-      if (hideTimeout) {
-        clearTimeout(hideTimeout);
-        hideTimeout = null;
-      }
-      
-      isOpen = true;
-      events.emit('openStart', tooltip.getState());
-      events.emit('change', tooltip.getState());
-      events.emitAsync('openEnd', tooltip.getState());
-    },
+    if (delay > 0) {
+      this._showTimeout = setTimeout(() => {
+        this._doOpen();
+        this._showTimeout = null;
+      }, delay);
+    } else {
+      this._doOpen();
+    }
+  }
+  
+  /**
+   * Close tooltip with delay
+   */
+  close() {
+    if (!this.isOpen) return;
     
-    close() {
-      if (!isOpen) return;
-      
-      // Clear any pending show
-      if (showTimeout) {
-        clearTimeout(showTimeout);
-        showTimeout = null;
-      }
-      
-      isOpen = false;
-      events.emit('closeStart', tooltip.getState());
-      events.emit('change', tooltip.getState());
-      events.emitAsync('closeEnd', tooltip.getState());
-    },
+    // Clear any pending show
+    if (this._showTimeout) {
+      clearTimeout(this._showTimeout);
+      this._showTimeout = null;
+    }
     
-    toggle() {
-      isOpen ? tooltip.close() : tooltip.open();
-    },
+    const hideDelay = this.get('meta.hideDelay');
     
-    // Event subscriptions
-    onChange: events.onChange,
-    onOpenStart: events.onOpenStart,
-    onOpenEnd: events.onOpenEnd,
-    onCloseStart: events.onCloseStart,
-    onCloseEnd: events.onCloseEnd,
+    if (hideDelay > 0) {
+      this._hideTimeout = setTimeout(() => {
+        this._doClose();
+        this._hideTimeout = null;
+      }, hideDelay);
+    } else {
+      this._doClose();
+    }
+  }
+  
+  /**
+   * Toggle tooltip state
+   */
+  toggle() {
+    this.isOpen ? this.close() : this.open();
+  }
+  
+  /**
+   * Immediate open without delay
+   * @private
+   */
+  _doOpen() {
+    this.set('status', 'transitioning');
+    this.emit('openStart', { state: this.state, primitive: this });
     
-    /**
-     * Register trigger element
-     * @param {HTMLElement} element
-     * @param {Object} options
-     * @returns {Function} Cleanup
-     */
-    registerTrigger(element, options = {}) {
-      if (!element?.addEventListener) {
-        console.warn('Invalid trigger element');
-        return () => {};
-      }
-      
-      const {
-        showOnHover = true,
-        showOnFocus = true,
-        interactive = false
-      } = options;
-      
-      const showTooltip = () => {
-        if (showTimeout) clearTimeout(showTimeout);
-        if (hideTimeout) clearTimeout(hideTimeout);
-        hideTimeout = null;
-        
-        if (delay > 0) {
-          showTimeout = setTimeout(() => {
-            tooltip.open();
-            showTimeout = null;
-          }, delay);
-        } else {
-          tooltip.open();
-        }
-      };
-      
-      const hideTooltip = () => {
-        if (showTimeout) clearTimeout(showTimeout);
-        showTimeout = null;
-        
-        if (hideDelay > 0) {
-          hideTimeout = setTimeout(() => {
-            tooltip.close();
-            hideTimeout = null;
-          }, hideDelay);
-        } else {
-          tooltip.close();
-        }
-      };
-      
-      const handleMouseEnter = showOnHover ? showTooltip : null;
-      const handleMouseLeave = showOnHover ? hideTooltip : null;
-      const handleFocus = showOnFocus ? showTooltip : null;
-      const handleBlur = showOnFocus ? hideTooltip : null;
-      
-      if (handleMouseEnter) {
-        element.addEventListener('mouseenter', handleMouseEnter);
+    this.set('value.isOpen', true);
+    this.set('status', 'active');
+    
+    // Async completion event
+    queueMicrotask(() => {
+      this.emit('openEnd', { state: this.state, primitive: this });
+    });
+  }
+  
+  /**
+   * Immediate close without delay
+   * @private
+   */
+  _doClose() {
+    this.set('status', 'transitioning');
+    this.emit('closeStart', { state: this.state, primitive: this });
+    
+    this.set('value.isOpen', false);
+    this.set('status', 'idle');
+    
+    // Async completion event
+    queueMicrotask(() => {
+      this.emit('closeEnd', { state: this.state, primitive: this });
+    });
+  }
+  
+  /**
+   * Register trigger element with hover/focus behavior
+   * @param {HTMLElement} element - Trigger element
+   * @param {Object} options - Options
+   * @returns {Function} Cleanup function
+   */
+  registerTrigger(element, options = {}) {
+    if (!element?.addEventListener) {
+      console.warn('TooltipPrimitive: Invalid trigger element');
+      return () => {};
+    }
+    
+    const {
+      showOnHover = true,
+      showOnFocus = true,
+      interactive = this.get('meta.interactive')
+    } = options;
+    
+    const showTooltip = () => this.open();
+    const hideTooltip = () => this.close();
+    
+    const handleMouseEnter = showOnHover ? showTooltip : null;
+    const handleMouseLeave = showOnHover && !interactive ? hideTooltip : null;
+    const handleFocus = showOnFocus ? showTooltip : null;
+    const handleBlur = showOnFocus ? hideTooltip : null;
+    
+    // Setup event listeners
+    if (handleMouseEnter) {
+      element.addEventListener('mouseenter', handleMouseEnter);
+      if (handleMouseLeave) {
         element.addEventListener('mouseleave', handleMouseLeave);
+      }
+    }
+    
+    if (handleFocus) {
+      element.addEventListener('focus', handleFocus);
+      element.addEventListener('blur', handleBlur);
+    }
+    
+    // Setup ARIA attributes
+    element.setAttribute('aria-describedby', `tooltip-${this._instanceId}`);
+    
+    return () => {
+      // Clear timeouts
+      if (this._showTimeout) {
+        clearTimeout(this._showTimeout);
+        this._showTimeout = null;
+      }
+      if (this._hideTimeout) {
+        clearTimeout(this._hideTimeout);
+        this._hideTimeout = null;
+      }
+      
+      // Remove event listeners
+      if (handleMouseEnter) {
+        element.removeEventListener('mouseenter', handleMouseEnter);
+        if (handleMouseLeave) {
+          element.removeEventListener('mouseleave', handleMouseLeave);
+        }
       }
       
       if (handleFocus) {
-        element.addEventListener('focus', handleFocus);
-        element.addEventListener('blur', handleBlur);
+        element.removeEventListener('focus', handleFocus);
+        element.removeEventListener('blur', handleBlur);
       }
       
-      element.setAttribute('aria-describedby', `tooltip-${tooltip._instanceId}`);
-      
-      return () => {
-        if (showTimeout) clearTimeout(showTimeout);
-        if (hideTimeout) clearTimeout(hideTimeout);
-        
-        if (handleMouseEnter) {
-          element.removeEventListener('mouseenter', handleMouseEnter);
-          element.removeEventListener('mouseleave', handleMouseLeave);
-        }
-        
-        if (handleFocus) {
-          element.removeEventListener('focus', handleFocus);
-          element.removeEventListener('blur', handleBlur);
-        }
-        
-        element.removeAttribute('aria-describedby');
-      };
-    },
-    
-    /**
-     * Register content element
-     * @param {HTMLElement} element
-     * @param {Object} options
-     * @returns {Function} Cleanup
-     */
-    registerContent(element, options = {}) {
-      if (!element) {
-        console.warn('Invalid content element');
-        return () => {};
-      }
-      
-      const {
-        interactive = false,
-        position = 'top'
-      } = options;
-      
-      // Set tooltip ID for aria-describedby
-      element.id = `tooltip-${tooltip._instanceId}`;
-      element.setAttribute('role', 'tooltip');
-      element.setAttribute('aria-hidden', String(!isOpen));
-      
-      // Handle interactive tooltips
-      let mouseInContent = false;
-      
-      const handleContentMouseEnter = () => {
-        if (interactive) {
-          mouseInContent = true;
-          if (hideTimeout) {
-            clearTimeout(hideTimeout);
-            hideTimeout = null;
-          }
-        }
-      };
-      
-      const handleContentMouseLeave = () => {
-        if (interactive) {
-          mouseInContent = false;
-          if (hideDelay > 0) {
-            hideTimeout = setTimeout(() => {
-              tooltip.close();
-              hideTimeout = null;
-            }, hideDelay);
-          } else {
-            tooltip.close();
-          }
-        }
-      };
-      
-      if (interactive) {
-        element.addEventListener('mouseenter', handleContentMouseEnter);
-        element.addEventListener('mouseleave', handleContentMouseLeave);
-      }
-      
-      const updateVisibility = ({ isOpen }) => {
-        element.setAttribute('aria-hidden', String(!isOpen));
-        element.style.display = isOpen ? '' : 'none';
-      };
-      
-      // Initial state
-      updateVisibility(tooltip.getState());
-      
-      const unsubscribe = tooltip.onChange(updateVisibility);
-      
-      return () => {
-        if (interactive) {
-          element.removeEventListener('mouseenter', handleContentMouseEnter);
-          element.removeEventListener('mouseleave', handleContentMouseLeave);
-        }
-        unsubscribe();
-      };
+      element.removeAttribute('aria-describedby');
+    };
+  }
+  
+  /**
+   * Register content element with accessibility and interactivity
+   * @param {HTMLElement} element - Content element
+   * @param {Object} options - Options
+   * @returns {Function} Cleanup function
+   */
+  registerContent(element, options = {}) {
+    if (!element) {
+      console.warn('TooltipPrimitive: Invalid content element');
+      return () => {};
     }
-  };
+    
+    const {
+      interactive = this.get('meta.interactive'),
+      position = this.get('value.position')
+    } = options;
+    
+    // Set tooltip attributes
+    element.id = `tooltip-${this._instanceId}`;
+    element.setAttribute('role', 'tooltip');
+    element.setAttribute('data-tooltip-position', position);
+    
+    // Handle interactive tooltips
+    const handleContentMouseEnter = () => {
+      if (interactive && this._hideTimeout) {
+        clearTimeout(this._hideTimeout);
+        this._hideTimeout = null;
+      }
+    };
+    
+    const handleContentMouseLeave = () => {
+      if (interactive) {
+        this.close();
+      }
+    };
+    
+    if (interactive) {
+      element.addEventListener('mouseenter', handleContentMouseEnter);
+      element.addEventListener('mouseleave', handleContentMouseLeave);
+    }
+    
+    // Update visibility and ARIA
+    const updateVisibility = () => {
+      const isOpen = this.isOpen;
+      element.setAttribute('aria-hidden', String(!isOpen));
+      element.style.display = isOpen ? '' : 'none';
+      element.setAttribute('data-tooltip-open', String(isOpen));
+    };
+    
+    // Initial state
+    updateVisibility();
+    
+    const unsubscribe = this.on('valueChange', updateVisibility);
+    
+    return () => {
+      if (interactive) {
+        element.removeEventListener('mouseenter', handleContentMouseEnter);
+        element.removeEventListener('mouseleave', handleContentMouseLeave);
+      }
+      unsubscribe();
+    };
+  }
+  
+  /**
+   * Clean up all timeouts on destroy
+   */
+  destroy() {
+    if (this._showTimeout) {
+      clearTimeout(this._showTimeout);
+      this._showTimeout = null;
+    }
+    if (this._hideTimeout) {
+      clearTimeout(this._hideTimeout);
+      this._hideTimeout = null;
+    }
+    
+    super.destroy();
+  }
+}
+
+/**
+ * Create tooltip primitive instance
+ * @param {Object} options - Tooltip configuration
+ * @param {Array} plugins - Plugins to apply
+ * @returns {TooltipPrimitive} Tooltip instance
+ */
+export function createTooltip(options = {}, plugins = []) {
+  const tooltip = new TooltipPrimitive(options);
   
   // Apply plugins
   plugins.forEach(plugin => {
     if (typeof plugin === 'function') {
-      plugin(tooltip);
+      tooltip.use(plugin);
     }
   });
   

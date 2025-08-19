@@ -1,9 +1,115 @@
-# Universal UI Protocol - System Architecture
+# Universal UI Protocol - Technical Architecture
 
 > **Version**: 0.x (Pre-Release)  
-> **Last Updated**: 2025
+> **Last Updated**: August 2025
 
-## System Overview
+## Core Philosophy
+
+**"Every UI is just State + Transitions + Interactions"**
+
+The Universal UI Protocol (UIP) reduces all user interface patterns to three fundamental concepts:
+
+1. **State** - Reactive data that defines the current condition of a UI element
+2. **Transitions** - How state changes over time with animations and effects  
+3. **Interactions** - How users manipulate state through gestures, input, and events
+
+This protocol-first approach enables universal compatibility across frameworks while maintaining optimal performance and developer experience.
+
+## State Protocol Specification
+
+### Core State Interface
+
+Every UIP primitive implements the following state structure:
+
+```javascript
+interface UIState {
+  // Primary value (required)
+  value: any;              // The main state (isOpen, selectedIndex, inputValue, etc.)
+  
+  // State machine status (required)  
+  status: 'idle' | 'active' | 'transitioning' | 'interacting';
+  
+  // User interaction state (optional)
+  interaction: {
+    type: string;          // 'drag', 'hover', 'focus', etc.
+    progress: number;      // 0-1 completion percentage
+    data: any;            // Interaction-specific data
+  } | null;
+  
+  // Animation/transition state (optional)
+  transition: {
+    from: any;            // Starting value
+    to: any;              // Target value
+    progress: number;     // 0-1 completion
+    duration: number;     // Total duration in ms
+    easing: string;       // Easing function name
+  } | null;
+  
+  // Computed properties (auto-calculated)
+  computed: {
+    [key: string]: any;   // Derived values (cssTransform, isValid, etc.)
+  };
+  
+  // Metadata (configuration)
+  meta: {
+    [key: string]: any;   // Static configuration values
+  };
+}
+```
+
+### Universal API Pattern
+
+All primitives follow the same interface:
+
+```javascript
+// State access
+primitive.get(path?)       // Get state value by path
+primitive.set(path, value) // Set state value by path
+primitive.update(fn)       // Update state with function
+primitive.batch(fn)        // Batch multiple changes
+
+// Lifecycle
+primitive.open()           // Show/activate
+primitive.close()          // Hide/deactivate  
+primitive.toggle()         // Toggle state
+primitive.destroy()        // Cleanup
+
+// Events
+primitive.on(event, fn)    // Subscribe to events
+primitive.emit(event, data)// Emit custom events
+
+// Plugins
+primitive.use(plugin)      // Apply plugin
+
+// DOM Integration
+primitive.registerTrigger(el, opts)  // Trigger element
+primitive.registerContent(el, opts)  // Content element
+```
+
+## Bundle Size Analysis
+
+### Core Package Sizes
+
+| Package | Bundle Size | Description |
+|---------|-------------|-------------|
+| **@uip/core** | 3KB | All 5 primitives + state management |
+| **@uip/plugin-gesture** | 1KB | Touch/mouse interactions |
+| **@uip/plugin-animate** | 2KB | Smooth animations with physics |
+| **@uip/adapter-vanilla** | 0.5KB | DOM integration helpers |
+| **@uip/adapter-svelte** | 0.5KB | Svelte store integration |
+| **@uip/adapter-react** | 1KB | React hooks integration |
+
+### Comparison with Alternatives
+
+| Library | Bundle Size | Framework Support |
+|---------|-------------|------------------|
+| **UIP Full Setup** | 8KB | Universal (React, Vue, Svelte, Vanilla) |
+| Radix UI | 45KB | React only |
+| Headless UI | 35KB | React, Vue |
+| Arco Design | 200KB+ | React, Vue |
+| Chakra UI | 150KB+ | React only |
+
+## System Architecture
 
 The Universal UI Protocol implements a **three-layer architecture** that separates concerns while maintaining universal compatibility:
 
@@ -26,7 +132,7 @@ The Universal UI Protocol implements a **three-layer architecture** that separat
 
 This separation enables:
 - **Maximum reusability** across frameworks
-- **Optimal bundle sizes** through tree-shaking
+- **Optimal bundle sizes** through tree-shaking (3KB vs 45KB+)
 - **Progressive enhancement** from simple to complex UX
 - **Zero-config defaults** with full customization escape hatches
 
@@ -159,6 +265,49 @@ packages/adapters/
     │   ├── composables.js         # Reactive composition
     │   └── directives.js          # Vue directive helpers
     └── package.json
+```
+
+### 4. Development Tools Layer (CLI)
+
+**Responsibility**: Code scaffolding and development workflow tools
+
+```
+packages/cli/
+├── src/
+│   ├── index.js                   # CLI entry point
+│   ├── commands/
+│   │   ├── add.js                 # Component scaffolding
+│   │   └── init.js                # Project initialization
+│   ├── templates/
+│   │   ├── vanilla/               # Vanilla JS templates
+│   │   ├── react/                 # React templates
+│   │   └── svelte/                # Svelte templates
+│   └── utils/
+│       ├── file-helpers.js        # File system utilities
+│       └── template-engine.js     # Template processing
+└── package.json
+```
+
+#### CLI Features
+
+**Component Scaffolding**
+```bash
+npx @uip/cli add drawer --react     # React drawer component
+npx @uip/cli add modal --svelte     # Svelte modal component  
+npx @uip/cli add tooltip --vanilla  # Vanilla JS tooltip
+```
+
+**Project Initialization**
+```bash
+npx @uip/cli init my-app --template react
+npx @uip/cli init my-app --template svelte --plugins gesture,animate
+```
+
+**Development Tools**
+```bash
+npx @uip/cli analyze bundle         # Bundle size analysis
+npx @uip/cli validate a11y          # Accessibility validation
+npx @uip/cli test performance       # Performance benchmarks
 ```
 
 ## Data Flow Architecture

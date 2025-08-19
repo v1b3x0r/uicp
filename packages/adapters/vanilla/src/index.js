@@ -3,7 +3,7 @@
  * Lean DOM integration with event delegation and auto-scan
  */
 
-import { createDrawer } from '@uip/core';
+import { createDrawer as createCoreDrawer } from '@uip/core';
 
 /**
  * Create drawer with enhanced DOM capabilities
@@ -11,7 +11,7 @@ import { createDrawer } from '@uip/core';
  * @returns {Object} Enhanced drawer instance
  */
 export function createUniversalDrawer(options = {}) {
-  const drawer = createDrawer(options);
+  const drawer = createCoreDrawer(options);
   
   /**
    * Auto-scan container for drawer elements
@@ -157,5 +157,29 @@ export const drawerUtils = {
 export { createUniversalDrawer as autoDrawer };
 export { createDrawer as createDOMDrawer };
 
+/**
+ * Setup drawer with direct element references (for demo compatibility)
+ * @param {Object} config - Configuration
+ * @param {HTMLElement} config.trigger - Trigger element
+ * @param {HTMLElement} config.content - Content element
+ * @param {Object} [config.dragOptions] - Drag options (ignored for now)
+ * @returns {Object} Drawer instance
+ */
+export function setupDrawer(config = {}) {
+  const { trigger, content, dragOptions, ...options } = config;
+  
+  const drawer = createCoreDrawer(options);
+  
+  if (trigger) {
+    drawer.registerTrigger(trigger);
+  }
+  
+  if (content) {
+    drawer.registerContent(content);
+  }
+  
+  return drawer;
+}
+
 // Re-export core
-export { createDrawer as createCoreDrawer } from '@uip/core';
+export { createCoreDrawer };

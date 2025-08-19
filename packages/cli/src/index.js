@@ -21,10 +21,12 @@ const dir = 'src/components';
 if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
 const templates = {
-  vanilla: `import { createDrawer, registerDrawerDrag } from '@uikit/core';
+  vanilla: `import { createDrawer } from '@uip/core';
+import { gesturePlugin } from '@uip/plugin-gesture';
 
 export function DrawerDemo() {
-  const drawer = createDrawer();
+  const drawer = createDrawer()
+    .use(gesturePlugin({ axis: 'x' }));
   
   return {
     mount(container) {
@@ -40,14 +42,13 @@ export function DrawerDemo() {
       
       drawer.registerTrigger(container.querySelector('#trigger'));
       drawer.registerContent(container.querySelector('#drawer'));
-      registerDrawerDrag(drawer, container.querySelector('#drawer'));
       
       return drawer;
     }
   };
 }`,
   
-  react: `import { useDrawer } from '@uikit/react';
+  react: `import { useDrawer } from '@uip/adapter-react';
 
 export function DrawerDemo() {
   const { drawer, triggerRef, contentRef } = useDrawer();
@@ -68,9 +69,9 @@ export function DrawerDemo() {
 }`,
 
   svelte: `<script>
-  import { drawerStore } from '@uikit/svelte';
+  import { createDrawerStore } from '@uip/adapter-svelte';
   
-  const drawer = drawerStore();
+  const drawer = createDrawerStore();
   let triggerEl, contentEl;
   
   $: if (triggerEl) drawer.registerTrigger(triggerEl);
@@ -91,4 +92,4 @@ const filepath = join(dir, filename);
 
 writeFileSync(filepath, templates[framework]);
 console.log(`✓ Created ${filepath}`);
-console.log(`Install: npm i @uikit/core @uikit/${framework === 'vanilla' ? 'vanilla' : framework}`);
+console.log(`Install: npm i @uip/core @uip/adapter-${framework === 'vanilla' ? 'vanilla' : framework}`);

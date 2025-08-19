@@ -1,224 +1,274 @@
 /**
- * @uip/core - Popover Primitive
- * Click-triggered floating content with auto-positioning
+ * @uip/core - Popover Primitive (Protocol v0.x)
+ * Click-triggered floating content implementing Universal UI Protocol
  */
 
-import { createEventSystem, createKeyboardHandler } from '../utils/events.js';
+import { UIPrimitive } from '../base/UIPrimitive.js';
 import { enableFocusTrap, disableFocusTrap, focusFirstElement } from '../utils/focus-trap.js';
+import { createKeyboardHandler } from '../utils/events.js';
 
 /**
- * Create popover instance
- * @param {Object} options - Popover options
- * @param {Array} plugins - Optional plugins
- * @returns {Object} Popover API
+ * Popover Primitive Class
+ * Extends UIPrimitive with popover-specific behavior
  */
-export function createPopover(options = {}, plugins = []) {
-  const { 
-    initialOpen = false,
-    onStateChange,
-    closeOnClickOutside = true,
-    closeOnEscape = true
-  } = options;
-  
-  let isOpen = initialOpen;
-  const events = createEventSystem();
-  let currentTriggerElement = null;
-  
-  // Add initial change listener
-  if (onStateChange) {
-    events.onChange(onStateChange);
+class PopoverPrimitive extends UIPrimitive {
+  constructor(options = {}) {
+    const {
+      initialOpen = false,
+      closeOnClickOutside = true,
+      closeOnEscape = true,
+      position = 'bottom',
+      ...restOptions
+    } = options;
+    
+    super({
+      _type: 'popover',
+      value: {
+        isOpen: initialOpen,
+        position,
+        triggerElement: null
+      },
+      computed: {
+        // Computed properties for popover state
+        cssOpacity: (state) => state.value.isOpen ? '1' : '0',
+        cssVisibility: (state) => state.value.isOpen ? 'visible' : 'hidden',
+        cssPointerEvents: (state) => state.value.isOpen ? 'auto' : 'none'
+      },
+      meta: {
+        closeOnClickOutside,
+        closeOnEscape
+      },
+      ...restOptions
+    });
   }
   
-  const popover = {
-    // Type identification for plugins
-    _type: 'popover',
-    _instanceId: Math.random().toString(36).substring(2, 9),
+  /**
+   * Convenience getter for isOpen
+   */
+  get isOpen() {
+    return this.get('value.isOpen');
+  }
+  
+  /**
+   * Open popover with optional trigger reference
+   * @param {HTMLElement} triggerElement - Trigger element reference
+   */
+  open(triggerElement = null) {
+    if (this.isOpen) return;
     
-    get isOpen() {
-      return isOpen;
-    },
+    this.set('status', 'transitioning');
+    this.emit('openStart', { state: this.state, primitive: this, triggerElement });
     
-    getState() {
-      return { isOpen, triggerElement: currentTriggerElement };
-    },
+    this.set('value.isOpen', true);
+    this.set('value.triggerElement', triggerElement);
+    this.set('status', 'active');
     
-    open(triggerElement = null) {
-      if (isOpen) return;
-      currentTriggerElement = triggerElement;
-      isOpen = true;
-      events.emit('openStart', popover.getState());
-      events.emit('change', popover.getState());
-      events.emitAsync('openEnd', popover.getState());
-    },
+    // Async completion event
+    queueMicrotask(() => {
+      this.emit('openEnd', { state: this.state, primitive: this });
+    });
+  }
+  
+  /**
+   * Close popover
+   */
+  close() {
+    if (!this.isOpen) return;
     
-    close() {
-      if (!isOpen) return;
-      isOpen = false;
-      events.emit('closeStart', popover.getState());
-      events.emit('change', popover.getState());
-      events.emitAsync('closeEnd', popover.getState());
-      currentTriggerElement = null;
-    },
+    this.set('status', 'transitioning');
+    this.emit('closeStart', { state: this.state, primitive: this });
     
-    toggle(triggerElement = null) {
-      isOpen ? popover.close() : popover.open(triggerElement);
-    },
+    this.set('value.isOpen', false);
+    this.set('value.triggerElement', null);
+    this.set('status', 'idle');
     
-    // Event subscriptions
-    onChange: events.onChange,
-    onOpenStart: events.onOpenStart,
-    onOpenEnd: events.onOpenEnd,
-    onCloseStart: events.onCloseStart,
-    onCloseEnd: events.onCloseEnd,
-    
-    /**
-     * Register trigger element
-     * @param {HTMLElement} element
-     * @param {Object} options
-     * @returns {Function} Cleanup
-     */
-    registerTrigger(element, options = {}) {
-      if (!element?.addEventListener) {
-        console.warn('Invalid trigger element');
-        return () => {};
-      }
-      
-      const handleClick = (e) => {
-        e.stopPropagation();
-        popover.toggle(element);
-      };
-      
-      const handleKeydown = createKeyboardHandler({
-        onEnter: (e) => {
-          e.preventDefault();
-          popover.toggle(element);
-        },
-        onSpace: (e) => {
-          e.preventDefault();
-          popover.toggle(element);
-        }
-      });
-      
-      element.addEventListener('click', handleClick);
-      element.addEventListener('keydown', handleKeydown);
-      element.setAttribute('aria-haspopup', 'true');
-      element.setAttribute('aria-expanded', String(isOpen));
-      
-      const unsubscribe = popover.onChange(({ isOpen }) => {
-        element.setAttribute('aria-expanded', String(isOpen));
-      });
-      
-      return () => {
-        element.removeEventListener('click', handleClick);
-        element.removeEventListener('keydown', handleKeydown);
-        element.removeAttribute('aria-haspopup');
-        element.removeAttribute('aria-expanded');
-        unsubscribe();
-      };
-    },
-    
-    /**
-     * Register content element
-     * @param {HTMLElement} element
-     * @param {Object} options
-     * @returns {Function} Cleanup
-     */
-    registerContent(element, options = {}) {
-      if (!element) {
-        console.warn('Invalid content element');
-        return () => {};
-      }
-      
-      const {
-        trapFocus = false,
-        autoFocus = false,
-        position = 'bottom'
-      } = options;
-      
-      let focusTrapCleanup = null;
-      let clickOutsideHandler = null;
-      
-      const handleEscape = createKeyboardHandler({
-        onEscape: () => closeOnEscape && popover.close()
-      });
-      
-      const handleClickOutside = (e) => {
-        if (!element.contains(e.target) && 
-            currentTriggerElement && 
-            !currentTriggerElement.contains(e.target)) {
-          popover.close();
-        }
-      };
-      
-      const onOpen = () => {
-        if (trapFocus) {
-          focusTrapCleanup = enableFocusTrap(element, popover);
-        }
-        if (autoFocus) {
-          requestAnimationFrame(() => focusFirstElement(element));
-        }
-        
-        document.addEventListener('keydown', handleEscape);
-        
-        if (closeOnClickOutside) {
-          // Delay to prevent immediate close
-          setTimeout(() => {
-            clickOutsideHandler = handleClickOutside;
-            document.addEventListener('click', clickOutsideHandler);
-          }, 0);
-        }
-        
-        element.setAttribute('aria-hidden', 'false');
-        element.style.display = '';
-      };
-      
-      const onClose = () => {
-        if (focusTrapCleanup) {
-          focusTrapCleanup();
-          focusTrapCleanup = null;
-        }
-        
-        document.removeEventListener('keydown', handleEscape);
-        
-        if (clickOutsideHandler) {
-          document.removeEventListener('click', clickOutsideHandler);
-          clickOutsideHandler = null;
-        }
-        
-        element.setAttribute('aria-hidden', 'true');
-        element.style.display = 'none';
-      };
-      
-      // Prevent clicks inside from closing
-      element.addEventListener('click', (e) => e.stopPropagation());
-      
-      // Initial state
-      element.setAttribute('role', 'dialog');
-      element.setAttribute('aria-hidden', String(!isOpen));
-      element.style.display = isOpen ? '' : 'none';
-      
-      if (isOpen) onOpen();
-      
-      // Subscribe to lifecycle
-      const unsubOpen = popover.onOpenStart(onOpen);
-      const unsubClose = popover.onCloseStart(onClose);
-      
-      return () => {
-        unsubOpen();
-        unsubClose();
-        if (focusTrapCleanup) focusTrapCleanup();
-        document.removeEventListener('keydown', handleEscape);
-        if (clickOutsideHandler) {
-          document.removeEventListener('click', clickOutsideHandler);
-        }
-      };
+    // Async completion event
+    queueMicrotask(() => {
+      this.emit('closeEnd', { state: this.state, primitive: this });
+    });
+  }
+  
+  /**
+   * Toggle popover state
+   * @param {HTMLElement} triggerElement - Trigger element reference
+   */
+  toggle(triggerElement = null) {
+    this.isOpen ? this.close() : this.open(triggerElement);
+  }
+  
+  /**
+   * Register trigger element with click behavior
+   * @param {HTMLElement} element - Trigger element
+   * @param {Object} options - Options
+   * @returns {Function} Cleanup function
+   */
+  registerTrigger(element, options = {}) {
+    if (!element?.addEventListener) {
+      console.warn('PopoverPrimitive: Invalid trigger element');
+      return () => {};
     }
-  };
+    
+    const handleClick = (e) => {
+      e.stopPropagation();
+      this.toggle(element);
+    };
+    
+    const handleKeydown = createKeyboardHandler({
+      onEnter: (e) => {
+        e.preventDefault();
+        this.toggle(element);
+      },
+      onSpace: (e) => {
+        e.preventDefault();
+        this.toggle(element);
+      }
+    });
+    
+    // Setup event listeners
+    element.addEventListener('click', handleClick);
+    element.addEventListener('keydown', handleKeydown);
+    
+    // Setup ARIA attributes
+    element.setAttribute('aria-haspopup', 'dialog');
+    
+    const updateAria = () => {
+      element.setAttribute('aria-expanded', String(this.isOpen));
+    };
+    updateAria();
+    
+    // Listen to state changes
+    const unsubscribe = this.on('valueChange', updateAria);
+    
+    return () => {
+      element.removeEventListener('click', handleClick);
+      element.removeEventListener('keydown', handleKeydown);
+      element.removeAttribute('aria-haspopup');
+      element.removeAttribute('aria-expanded');
+      unsubscribe();
+    };
+  }
+  
+  /**
+   * Register content element with accessibility and click outside
+   * @param {HTMLElement} element - Content element
+   * @param {Object} options - Options
+   * @returns {Function} Cleanup function
+   */
+  registerContent(element, options = {}) {
+    if (!element) {
+      console.warn('PopoverPrimitive: Invalid content element');
+      return () => {};
+    }
+    
+    const {
+      trapFocus = false,
+      autoFocus = false,
+      closeOnClickOutside = this.get('meta.closeOnClickOutside'),
+      closeOnEscape = this.get('meta.closeOnEscape')
+    } = options;
+    
+    let focusTrapCleanup = null;
+    let clickOutsideHandler = null;
+    
+    const handleEscape = createKeyboardHandler({
+      onEscape: () => closeOnEscape && this.close()
+    });
+    
+    const handleClickOutside = (e) => {
+      const triggerElement = this.get('value.triggerElement');
+      if (!element.contains(e.target) && 
+          (!triggerElement || !triggerElement.contains(e.target))) {
+        this.close();
+      }
+    };
+    
+    const onOpen = () => {
+      // Focus management
+      if (trapFocus) {
+        focusTrapCleanup = enableFocusTrap(element, this);
+      }
+      if (autoFocus) {
+        requestAnimationFrame(() => focusFirstElement(element));
+      }
+      
+      // Keyboard handling
+      document.addEventListener('keydown', handleEscape);
+      
+      // Click outside handling
+      if (closeOnClickOutside) {
+        // Delay to prevent immediate close from trigger click
+        setTimeout(() => {
+          clickOutsideHandler = handleClickOutside;
+          document.addEventListener('click', clickOutsideHandler);
+        }, 0);
+      }
+      
+      // ARIA and visibility
+      element.setAttribute('aria-hidden', 'false');
+      element.style.display = '';
+    };
+    
+    const onClose = () => {
+      // Clean up focus trap
+      if (focusTrapCleanup) {
+        focusTrapCleanup();
+        focusTrapCleanup = null;
+      }
+      
+      // Remove event listeners
+      document.removeEventListener('keydown', handleEscape);
+      
+      if (clickOutsideHandler) {
+        document.removeEventListener('click', clickOutsideHandler);
+        clickOutsideHandler = null;
+      }
+      
+      // Update visibility and ARIA
+      element.setAttribute('aria-hidden', 'true');
+      element.style.display = 'none';
+    };
+    
+    // Prevent clicks inside from closing
+    const handleStopPropagation = (e) => e.stopPropagation();
+    element.addEventListener('click', handleStopPropagation);
+    
+    // Initial state
+    element.setAttribute('role', 'dialog');
+    element.setAttribute('aria-hidden', String(!this.isOpen));
+    element.style.display = this.isOpen ? '' : 'none';
+    
+    if (this.isOpen) onOpen();
+    
+    // Subscribe to lifecycle events
+    const unsubOpen = this.on('openStart', onOpen);
+    const unsubClose = this.on('closeStart', onClose);
+    
+    return () => {
+      unsubOpen();
+      unsubClose();
+      if (focusTrapCleanup) focusTrapCleanup();
+      document.removeEventListener('keydown', handleEscape);
+      if (clickOutsideHandler) {
+        document.removeEventListener('click', clickOutsideHandler);
+      }
+      element.removeEventListener('click', handleStopPropagation);
+    };
+  }
+}
+
+/**
+ * Create popover primitive instance
+ * @param {Object} options - Popover configuration
+ * @param {Array} plugins - Plugins to apply
+ * @returns {PopoverPrimitive} Popover instance
+ */
+export function createPopover(options = {}, plugins = []) {
+  const popover = new PopoverPrimitive(options);
   
   // Apply plugins
   plugins.forEach(plugin => {
     if (typeof plugin === 'function') {
-      plugin(popover);
+      popover.use(plugin);
     }
   });
   

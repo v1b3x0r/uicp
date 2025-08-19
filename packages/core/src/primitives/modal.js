@@ -1,235 +1,299 @@
 /**
- * @uip/core - Modal Primitive
- * Overlay dialog with backdrop and focus management
+ * @uip/core - Modal Primitive (Protocol v0.x)
+ * Overlay dialog implementing Universal UI Protocol
  */
 
+import { UIPrimitive } from '../base/UIPrimitive.js';
 import { enableFocusTrap, disableFocusTrap, focusFirstElement } from '../utils/focus-trap.js';
 import { lockBodyScroll, unlockBodyScroll } from '../utils/scroll-lock.js';
-import { createEventSystem, createKeyboardHandler } from '../utils/events.js';
+import { createKeyboardHandler } from '../utils/events.js';
 
 /**
- * Create modal instance
- * @param {Object} options - Modal options
- * @param {Array} plugins - Optional plugins
- * @returns {Object} Modal API
+ * Modal Primitive Class
+ * Extends UIPrimitive with modal-specific behavior
  */
-export function createModal(options = {}, plugins = []) {
-  const { 
-    initialOpen = false,
-    onStateChange,
-    closeOnBackdrop = true,
-    closeOnEscape = true
-  } = options;
-  
-  let isOpen = initialOpen;
-  const events = createEventSystem();
-  
-  // Add initial change listener
-  if (onStateChange) {
-    events.onChange(onStateChange);
+class ModalPrimitive extends UIPrimitive {
+  constructor(options = {}) {
+    const {
+      initialOpen = false,
+      closeOnBackdrop = true,
+      closeOnEscape = true,
+      portal = false,
+      ...restOptions
+    } = options;
+    
+    super({
+      _type: 'modal',
+      value: {
+        isOpen: initialOpen
+      },
+      computed: {
+        // Computed properties for modal state
+        cssOpacity: (state) => state.value.isOpen ? '1' : '0',
+        cssVisibility: (state) => state.value.isOpen ? 'visible' : 'hidden',
+        cssPointerEvents: (state) => state.value.isOpen ? 'auto' : 'none'
+      },
+      meta: {
+        closeOnBackdrop,
+        closeOnEscape,
+        portal
+      },
+      ...restOptions
+    });
   }
   
-  const modal = {
-    // Type identification for plugins
-    _type: 'modal',
-    _instanceId: Math.random().toString(36).substring(2, 9),
+  /**
+   * Convenience getter for isOpen
+   */
+  get isOpen() {
+    return this.get('value.isOpen');
+  }
+  
+  /**
+   * Open modal
+   */
+  open() {
+    if (this.isOpen) return;
     
-    get isOpen() {
-      return isOpen;
-    },
+    this.set('status', 'transitioning');
+    this.emit('openStart', { state: this.state, primitive: this });
     
-    getState() {
-      return { isOpen };
-    },
+    this.set('value.isOpen', true);
+    this.set('status', 'active');
     
-    open() {
-      if (isOpen) return;
-      isOpen = true;
-      events.emit('openStart', modal.getState());
-      events.emit('change', modal.getState());
-      events.emitAsync('openEnd', modal.getState());
-    },
+    // Async completion event
+    queueMicrotask(() => {
+      this.emit('openEnd', { state: this.state, primitive: this });
+    });
+  }
+  
+  /**
+   * Close modal
+   */
+  close() {
+    if (!this.isOpen) return;
     
-    close() {
-      if (!isOpen) return;
-      isOpen = false;
-      events.emit('closeStart', modal.getState());
-      events.emit('change', modal.getState());
-      events.emitAsync('closeEnd', modal.getState());
-    },
+    this.set('status', 'transitioning');
+    this.emit('closeStart', { state: this.state, primitive: this });
     
-    toggle() {
-      isOpen ? modal.close() : modal.open();
-    },
+    this.set('value.isOpen', false);
+    this.set('status', 'idle');
     
-    // Event subscriptions
-    onChange: events.onChange,
-    onOpenStart: events.onOpenStart,
-    onOpenEnd: events.onOpenEnd,
-    onCloseStart: events.onCloseStart,
-    onCloseEnd: events.onCloseEnd,
+    // Async completion event
+    queueMicrotask(() => {
+      this.emit('closeEnd', { state: this.state, primitive: this });
+    });
+  }
+  
+  /**
+   * Toggle modal state
+   */
+  toggle() {
+    this.isOpen ? this.close() : this.open();
+  }
+  
+  /**
+   * Register trigger element with keyboard support
+   * @param {HTMLElement} element - Trigger element
+   * @param {Object} options - Options
+   * @returns {Function} Cleanup function
+   */
+  registerTrigger(element, options = {}) {
+    if (!element?.addEventListener) {
+      console.warn('ModalPrimitive: Invalid trigger element');
+      return () => {};
+    }
     
-    /**
-     * Register trigger element
-     * @param {HTMLElement} element
-     * @param {Object} options
-     * @returns {Function} Cleanup
-     */
-    registerTrigger(element, options = {}) {
-      if (!element?.addEventListener) {
-        console.warn('Invalid trigger element');
-        return () => {};
+    const handleClick = () => this.open();
+    const handleKeydown = createKeyboardHandler({
+      onEnter: (e) => {
+        e.preventDefault();
+        this.open();
+      },
+      onSpace: (e) => {
+        e.preventDefault();
+        this.open();
+      }
+    });
+    
+    // Setup event listeners
+    element.addEventListener('click', handleClick);
+    element.addEventListener('keydown', handleKeydown);
+    
+    // Setup ARIA attributes
+    element.setAttribute('aria-haspopup', 'dialog');
+    
+    return () => {
+      element.removeEventListener('click', handleClick);
+      element.removeEventListener('keydown', handleKeydown);
+      element.removeAttribute('aria-haspopup');
+    };
+  }
+  
+  /**
+   * Register content element with accessibility features
+   * @param {HTMLElement} element - Content element
+   * @param {Object} options - Options
+   * @returns {Function} Cleanup function
+   */
+  registerContent(element, options = {}) {
+    if (!element) {
+      console.warn('ModalPrimitive: Invalid content element');
+      return () => {};
+    }
+    
+    const {
+      trapFocus = true,
+      lockScroll = true,
+      autoFocus = true,
+      portal = this.get('meta.portal'),
+      closeOnEscape = this.get('meta.closeOnEscape')
+    } = options;
+    
+    let focusTrapCleanup = null;
+    let portalElement = null;
+    let originalParent = null;
+    
+    const handleEscape = createKeyboardHandler({
+      onEscape: () => closeOnEscape && this.close()
+    });
+    
+    const onOpen = () => {
+      // Portal rendering
+      if (portal && typeof document !== 'undefined') {
+        originalParent = element.parentNode;
+        portalElement = document.createElement('div');
+        portalElement.className = 'uip-modal-portal';
+        portalElement.setAttribute('data-uip-portal', 'modal');
+        document.body.appendChild(portalElement);
+        portalElement.appendChild(element);
       }
       
-      const handleClick = () => modal.open();
-      const handleKeydown = createKeyboardHandler({
-        onEnter: (e) => {
-          e.preventDefault();
-          modal.open();
-        },
-        onSpace: (e) => {
-          e.preventDefault();
-          modal.open();
-        }
-      });
-      
-      element.addEventListener('click', handleClick);
-      element.addEventListener('keydown', handleKeydown);
-      element.setAttribute('aria-haspopup', 'dialog');
-      
-      return () => {
-        element.removeEventListener('click', handleClick);
-        element.removeEventListener('keydown', handleKeydown);
-        element.removeAttribute('aria-haspopup');
-      };
-    },
-    
-    /**
-     * Register content element
-     * @param {HTMLElement} element
-     * @param {Object} options
-     * @returns {Function} Cleanup
-     */
-    registerContent(element, options = {}) {
-      if (!element) {
-        console.warn('Invalid content element');
-        return () => {};
+      // Focus management
+      if (trapFocus) {
+        focusTrapCleanup = enableFocusTrap(element, this);
+      }
+      if (autoFocus) {
+        requestAnimationFrame(() => focusFirstElement(element));
       }
       
-      const {
-        trapFocus = true,
-        lockScroll = true,
-        autoFocus = true,
-        portal = false
-      } = options;
+      // Scroll lock
+      if (lockScroll) lockBodyScroll();
       
-      let focusTrapCleanup = null;
-      let portalElement = null;
+      // Keyboard handling
+      document.addEventListener('keydown', handleEscape);
       
-      const handleEscape = createKeyboardHandler({
-        onEscape: () => closeOnEscape && modal.close()
-      });
-      
-      const onOpen = () => {
-        // Portal rendering
-        if (portal && typeof document !== 'undefined') {
-          portalElement = document.createElement('div');
-          portalElement.className = 'uip-modal-portal';
-          document.body.appendChild(portalElement);
-          portalElement.appendChild(element);
-        }
-        
-        if (lockScroll) lockBodyScroll();
-        if (trapFocus) {
-          focusTrapCleanup = enableFocusTrap(element, modal);
-        }
-        if (autoFocus) {
-          requestAnimationFrame(() => focusFirstElement(element));
-        }
-        document.addEventListener('keydown', handleEscape);
-        element.setAttribute('aria-modal', 'true');
-        element.setAttribute('role', 'dialog');
-        element.setAttribute('aria-hidden', 'false');
-      };
-      
-      const onClose = () => {
-        if (focusTrapCleanup) {
-          focusTrapCleanup();
-          focusTrapCleanup = null;
-        }
-        if (lockScroll) unlockBodyScroll();
-        document.removeEventListener('keydown', handleEscape);
-        element.setAttribute('aria-hidden', 'true');
-        
-        // Clean up portal
-        if (portalElement && portalElement.parentNode) {
-          if (element.parentNode === portalElement) {
-            document.body.appendChild(element);
-          }
-          portalElement.remove();
-          portalElement = null;
-        }
-      };
-      
-      // Initial state
-      element.setAttribute('aria-hidden', String(!isOpen));
-      if (isOpen) onOpen();
-      
-      // Subscribe to lifecycle
-      const unsubOpen = modal.onOpenStart(onOpen);
-      const unsubClose = modal.onCloseEnd(onClose);
-      
-      return () => {
-        unsubOpen();
-        unsubClose();
-        if (focusTrapCleanup) focusTrapCleanup();
-        if (lockScroll && isOpen) unlockBodyScroll();
-        document.removeEventListener('keydown', handleEscape);
-        if (portalElement) portalElement.remove();
-      };
-    },
+      // ARIA attributes
+      element.setAttribute('aria-modal', 'true');
+      element.setAttribute('role', 'dialog');
+      element.setAttribute('aria-hidden', 'false');
+    };
     
-    /**
-     * Register backdrop element
-     * @param {HTMLElement} element
-     * @param {Object} options
-     * @returns {Function} Cleanup
-     */
-    registerBackdrop(element, options = {}) {
-      if (!element?.addEventListener) {
-        console.warn('Invalid backdrop element');
-        return () => {};
+    const onClose = () => {
+      // Clean up focus trap
+      if (focusTrapCleanup) {
+        focusTrapCleanup();
+        focusTrapCleanup = null;
       }
       
-      const handleClick = (e) => {
-        if (e.target === element && closeOnBackdrop) {
-          modal.close();
-        }
-      };
+      // Restore scroll
+      if (lockScroll) unlockBodyScroll();
       
-      element.addEventListener('click', handleClick);
+      // Remove event listeners
+      document.removeEventListener('keydown', handleEscape);
+      
+      // Update ARIA
       element.setAttribute('aria-hidden', 'true');
       
-      const updateVisibility = ({ isOpen }) => {
-        element.style.display = isOpen ? '' : 'none';
-      };
-      
-      // Initial state
-      updateVisibility(modal.getState());
-      
-      const unsubscribe = modal.onChange(updateVisibility);
-      
-      return () => {
-        element.removeEventListener('click', handleClick);
-        unsubscribe();
-      };
+      // Clean up portal
+      if (portalElement && portalElement.parentNode) {
+        if (originalParent) {
+          originalParent.appendChild(element);
+        } else {
+          document.body.appendChild(element);
+        }
+        portalElement.remove();
+        portalElement = null;
+        originalParent = null;
+      }
+    };
+    
+    // Initial state
+    element.setAttribute('aria-hidden', String(!this.isOpen));
+    if (this.isOpen) onOpen();
+    
+    // Subscribe to lifecycle events
+    const unsubOpen = this.on('openStart', onOpen);
+    const unsubClose = this.on('closeEnd', onClose);
+    
+    return () => {
+      unsubOpen();
+      unsubClose();
+      if (focusTrapCleanup) focusTrapCleanup();
+      if (lockScroll && this.isOpen) unlockBodyScroll();
+      document.removeEventListener('keydown', handleEscape);
+      if (portalElement && portalElement.parentNode) {
+        portalElement.remove();
+      }
+    };
+  }
+  
+  /**
+   * Register backdrop element with click handling
+   * @param {HTMLElement} element - Backdrop element
+   * @param {Object} options - Options
+   * @returns {Function} Cleanup function
+   */
+  registerBackdrop(element, options = {}) {
+    if (!element?.addEventListener) {
+      console.warn('ModalPrimitive: Invalid backdrop element');
+      return () => {};
     }
-  };
+    
+    const {
+      closeOnClick = this.get('meta.closeOnBackdrop')
+    } = options;
+    
+    const handleClick = (e) => {
+      if (e.target === element && closeOnClick) {
+        this.close();
+      }
+    };
+    
+    element.addEventListener('click', handleClick);
+    element.setAttribute('aria-hidden', 'true');
+    
+    const updateVisibility = () => {
+      const isOpen = this.isOpen;
+      element.style.display = isOpen ? '' : 'none';
+      element.setAttribute('data-modal-open', String(isOpen));
+    };
+    
+    // Initial state
+    updateVisibility();
+    
+    const unsubscribe = this.on('valueChange', updateVisibility);
+    
+    return () => {
+      element.removeEventListener('click', handleClick);
+      unsubscribe();
+    };
+  }
+}
+
+/**
+ * Create modal primitive instance
+ * @param {Object} options - Modal configuration
+ * @param {Array} plugins - Plugins to apply
+ * @returns {ModalPrimitive} Modal instance
+ */
+export function createModal(options = {}, plugins = []) {
+  const modal = new ModalPrimitive(options);
   
   // Apply plugins
   plugins.forEach(plugin => {
     if (typeof plugin === 'function') {
-      plugin(modal);
+      modal.use(plugin);
     }
   });
   

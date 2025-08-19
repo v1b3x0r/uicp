@@ -37,7 +37,7 @@ export function animatePlugin(config = {}) {
     // Verify primitive supports animation
     if (!primitive._type || typeof primitive.on !== 'function') {
       console.warn('[AnimatePlugin] Primitive does not support animation');
-      return primitive;
+      return () => {}; // Return cleanup function, not primitive!
     }
 
     // Store original state setter
@@ -181,7 +181,18 @@ export function animatePlugin(config = {}) {
       }
     };
 
-    return primitive;
+    // Return cleanup function (plugin pattern)
+    return () => {
+      // Cancel all animations
+      animations.forEach(cancel => cancel());
+      animations.clear();
+      
+      // Restore original methods
+      primitive.set = originalSet;
+      primitive.open = originalOpen;
+      primitive.close = originalClose;
+      primitive.destroy = originalDestroy;
+    };
   };
 }
 

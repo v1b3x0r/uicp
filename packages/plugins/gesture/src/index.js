@@ -41,8 +41,8 @@ function detectPrimitiveType(primitive) {
 }
 
 /**
- * Register gesture handling for any primitive
- * @param {Object} primitive - Any UI primitive instance
+ * Register gesture handling for any UIP primitive
+ * @param {Object} primitive - UIPrimitive instance
  * @param {HTMLElement} element
  * @param {Object} options
  * @returns {Function} Cleanup function
@@ -53,8 +53,8 @@ export function registerGesture(primitive, element, options = {}) {
     return () => {};
   }
   
-  if (!primitive?.open || typeof primitive.isOpen !== 'boolean') {
-    console.warn('registerGesture: Invalid primitive instance');
+  if (!primitive?._type || typeof primitive.get !== 'function') {
+    console.warn('registerGesture: Invalid UIPrimitive instance');
     return () => {};
   }
   
@@ -97,7 +97,8 @@ export function registerGesture(primitive, element, options = {}) {
   }
   
   function handleStart(event) {
-    if (!primitive.isOpen && !pullToClose) return;
+    const isOpen = primitive.get('value.isOpen') || false;
+    if (!isOpen && !pullToClose) return;
     
     isDragging = true;
     startPos = getPosition(event);
@@ -161,18 +162,19 @@ export function registerGesture(primitive, element, options = {}) {
     
     // Determine action based on threshold and velocity
     const shouldToggle = progress > threshold || velocity > velocityThreshold;
+    const isOpen = primitive.get('value.isOpen') || false;
     
     if (shouldToggle) {
-      if (primitive.isOpen) {
+      if (isOpen) {
         // Closing gesture
         const isClosingDirection = (axis === 'x' && dragDistance < 0) || 
                                   (axis === 'y' && dragDistance > 0);
         if (isClosingDirection || pullToClose) {
-          primitive.close();
+          primitive.close?.() || primitive.set('value.isOpen', false);
         }
       } else if (pullToClose) {
         // Opening gesture (pull to open for modal)
-        primitive.open();
+        primitive.open?.() || primitive.set('value.isOpen', true);
       }
     }
     
@@ -233,19 +235,92 @@ export function registerGesture(primitive, element, options = {}) {
 export const registerDrawerDrag = registerGesture;
 
 /**
- * Create gesture plugin for initialization
- * @param {Object} options
+ * Modern gesture plugin for UIP primitives
+ * @param {Object} options - Gesture configuration
+ * @param {string} [options.axis='x'] - Drag axis ('x' or 'y')  
+ * @param {number} [options.threshold=0.3] - Toggle threshold (0-1)
+ * @param {number} [options.velocityThreshold=0.5] - Velocity threshold
+ * @param {boolean} [options.pullToClose=false] - Enable pull-to-close
+ * @param {Function} [options.onProgress] - Progress callback
  * @returns {Function} Plugin function
  */
-export function createGesturePlugin(options = {}) {
-  return (primitive) => {
-    // Auto-register if element is available
-    if (primitive._element) {
-      return registerGesture(primitive, primitive._element, options);
+export function gesturePlugin(options = {}) {
+  return function gesturePluginHandler(primitive) {
+    // Verify primitive supports gestures
+    const type = primitive._type;
+    const config = GESTURE_CONFIGS[type];
+    
+    if (!config?.supportsDrag) {
+      // Return no-op cleanup for unsupported primitives
+      return () => {};
     }
     
-    // Store config for later registration
-    primitive._gestureOptions = options;
-    return () => {};
+    // Merge options with primitive defaults
+    const finalOptions = {
+      axis: config.defaultAxis || 'x',
+      threshold: config.defaultThreshold || 0.3,
+      pullToClose: config.pullToClose || false,
+      ...options
+    };
+    
+    // Store cleanup functions
+    const cleanupFunctions = [];
+    
+    // Register gesture on existing elements
+    if (primitive._triggerElement) {
+      cleanupFunctions.push(
+        registerGesture(primitive, primitive._triggerElement, finalOptions)
+      );
+    }
+    
+    if (primitive._contentElement) {
+      cleanupFunctions.push(
+        registerGesture(primitive, primitive._contentElement, finalOptions)
+      );
+    }
+    
+    // Listen for new element registrations
+    const unsubscribeElementRegister = primitive.on('elementRegister', ({ element, role }) => {
+      if (role === 'content' || role === 'trigger') {
+        cleanupFunctions.push(
+          registerGesture(primitive, element, finalOptions)
+        );
+      }
+    });
+    
+    cleanupFunctions.push(unsubscribeElementRegister);
+    
+    // Enhanced state integration - emit interaction events
+    const originalHandleProgress = finalOptions.onProgress;
+    finalOptions.onProgress = (progressData) => {
+      // Update primitive interaction state
+      primitive.set('interaction', {
+        type: 'drag',
+        progress: progressData.progress,
+        data: progressData
+      });
+      
+      // Emit interaction event
+      primitive.emit('interactionProgress', progressData);
+      
+      // Call original progress handler
+      originalHandleProgress?.(progressData);
+    };
+    
+    return () => {
+      // Cleanup all registered gestures
+      cleanupFunctions.forEach(cleanup => cleanup());
+      
+      // Clear interaction state
+      if (primitive.get('interaction.type') === 'drag') {
+        primitive.set('interaction', null);
+      }
+    };
   };
 }
+
+/**
+ * Legacy gesture plugin (backward compatibility)
+ * @deprecated Use gesturePlugin() instead
+ */
+export const createGesturePlugin = gesturePlugin;

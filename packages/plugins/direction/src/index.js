@@ -12,20 +12,20 @@
  */
 
 /**
- * Register direction positioning for drawer
- * @param {Object} drawer - Drawer instance from @uip/core
- * @param {HTMLElement} element - Drawer element
+ * Register direction positioning for UIP primitive
+ * @param {Object} primitive - UIPrimitive instance
+ * @param {HTMLElement} element - Content element
  * @param {DirectionOptions} options - Direction options
  * @returns {Function} Cleanup function
  */
-export function registerDrawerDirection(drawer, element, options = {}) {
+export function registerDrawerDirection(primitive, element, options = {}) {
   if (!element?.style) {
     console.warn('registerDrawerDirection: Invalid element provided');
     return () => {};
   }
   
-  if (!drawer?.open || !drawer?.close) {
-    console.warn('registerDrawerDirection: Invalid drawer instance');
+  if (!primitive?._type || typeof primitive.get !== 'function') {
+    console.warn('registerDrawerDirection: Invalid UIPrimitive instance');
     return () => {};
   }
   
@@ -107,8 +107,9 @@ export function registerDrawerDirection(drawer, element, options = {}) {
   
   // Outside click handler
   function handleOutsideClick(event) {
-    if (autoClose && drawer.isOpen && !element.contains(event.target)) {
-      drawer.close();
+    const isOpen = primitive.get('value.isOpen') || false;
+    if (autoClose && isOpen && !element.contains(event.target)) {
+      primitive.close?.() || primitive.set('value.isOpen', false);
     }
   }
   
@@ -116,15 +117,21 @@ export function registerDrawerDirection(drawer, element, options = {}) {
   applyBaseStyles();
   
   // Set initial state
-  if (drawer.isOpen) {
+  const isOpen = primitive.get('value.isOpen') || false;
+  if (isOpen) {
     handleOpen();
   } else {
     handleClose();
   }
   
   // Subscribe to state changes
-  const unsubscribeOpen = drawer.onOpenStart(handleOpen);
-  const unsubscribeClose = drawer.onCloseStart(handleClose);
+  const unsubscribeChange = primitive.on('valueChange', ({ value }) => {
+    if (value.isOpen) {
+      handleOpen();
+    } else {
+      handleClose();
+    }
+  });
   
   // Outside click listener
   let clickCleanup = () => {};
@@ -137,8 +144,12 @@ export function registerDrawerDirection(drawer, element, options = {}) {
       }, 50);
     };
     
-    const unsubscribeOpenEnd = drawer.onOpenEnd(enableOutsideClick);
-    const unsubscribeCloseEnd = drawer.onCloseEnd(() => clickCleanup());
+    const unsubscribeOpenEnd = primitive.on('transitionComplete', (data) => {
+      if (data.to === true) enableOutsideClick();
+    });
+    const unsubscribeCloseEnd = primitive.on('transitionComplete', (data) => {
+      if (data.to === false) clickCleanup();
+    });
     
     clickCleanup = () => {
       unsubscribeOpenEnd();
@@ -148,8 +159,7 @@ export function registerDrawerDirection(drawer, element, options = {}) {
   }
   
   return () => {
-    unsubscribeOpen();
-    unsubscribeClose();
+    unsubscribeChange();
     clickCleanup();
     
     // Reset styles
@@ -172,9 +182,47 @@ export function registerDrawerDirection(drawer, element, options = {}) {
 }
 
 /**
- * Plugin interface for composition
+ * Modern direction plugin for UIP primitives
  * @param {DirectionOptions} options - Direction options
- * @returns {Object} Plugin object
+ * @returns {Function} Plugin function
+ */
+export function directionPlugin(options = {}) {
+  return function directionPluginHandler(primitive) {
+    // Only works with drawer-like primitives
+    if (primitive._type !== 'drawer') {
+      // Return no-op cleanup for unsupported primitives
+      return () => {};
+    }
+    
+    const cleanupFunctions = [];
+    
+    // Register direction on content element
+    if (primitive._contentElement) {
+      cleanupFunctions.push(
+        registerDrawerDirection(primitive, primitive._contentElement, options)
+      );
+    }
+    
+    // Listen for new element registrations
+    const unsubscribeElementRegister = primitive.on('elementRegister', ({ element, role }) => {
+      if (role === 'content') {
+        cleanupFunctions.push(
+          registerDrawerDirection(primitive, element, options)
+        );
+      }
+    });
+    
+    cleanupFunctions.push(unsubscribeElementRegister);
+    
+    return () => {
+      cleanupFunctions.forEach(cleanup => cleanup());
+    };
+  };
+}
+
+/**
+ * Legacy plugin interface (backward compatibility)
+ * @deprecated Use directionPlugin() instead
  */
 export function createDirectionPlugin(options = {}) {
   return {
@@ -187,19 +235,19 @@ export function createDirectionPlugin(options = {}) {
  * Preset plugins for common directions
  */
 export const DirectionPresets = {
-  leftDrawer: (size = '320px') => createDirectionPlugin({ direction: 'left', size }),
-  rightDrawer: (size = '320px') => createDirectionPlugin({ direction: 'right', size }),
-  topDrawer: (size = '40vh') => createDirectionPlugin({ direction: 'top', size }),
-  bottomDrawer: (size = '40vh') => createDirectionPlugin({ direction: 'bottom', size }),
+  leftDrawer: (size = '320px') => directionPlugin({ direction: 'left', size }),
+  rightDrawer: (size = '320px') => directionPlugin({ direction: 'right', size }),
+  topDrawer: (size = '40vh') => directionPlugin({ direction: 'top', size }),
+  bottomDrawer: (size = '40vh') => directionPlugin({ direction: 'bottom', size }),
   
   // Mobile-friendly variants
-  mobileSheet: () => createDirectionPlugin({ 
+  mobileSheet: () => directionPlugin({ 
     direction: 'bottom', 
     size: '60vh',
     transition: 'transform 0.4s cubic-bezier(0.32, 0.72, 0, 1)'
   }),
   
-  sidebar: () => createDirectionPlugin({ 
+  sidebar: () => directionPlugin({ 
     direction: 'left', 
     size: '280px',
     transition: 'transform 0.25s ease-out'

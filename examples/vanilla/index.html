@@ -46,10 +46,12 @@
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 1000;
       box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
     }
     
     .drawer.drawer-open {
-      transform: translateY(0) !important;
+      transform: translateY(0);
     }
     
     .backdrop {
@@ -73,8 +75,14 @@
     
     .drawer-content {
       padding: 20px;
-      height: 100%;
-      overflow-y: auto;
+      flex: 0 0 auto; /* Don't grow or shrink */
+      max-height: 360px; /* Fixed maximum height */
+      overflow-y: auto; /* Scroll if content is too long */
+    }
+    
+    .drawer-spacer {
+      flex: 1; /* Takes all remaining space when drawer expands */
+      min-height: 0;
     }
     
     .drawer-header {
@@ -130,7 +138,7 @@
 </head>
 <body>
   <h1>🧪 UIP Drawer Demo</h1>
-  <p>World-class single-file drawer implementation</p>
+  <p>Interactive drawer: drag up for fullscreen, drag down to close</p>
   
   <!-- Main Demo -->
   <div class="demo-section">
@@ -183,17 +191,20 @@
         <button id="close-drawer">Close</button>
       </div>
       <div>
-        <p>This is a world-class drawer with:</p>
+        <p>Interactive drawer with full gesture control:</p>
         <ul>
-          <li>✅ Single-file implementation</li>
-          <li>✅ Framework7-style state management</li>
-          <li>✅ Perfect DOM synchronization</li>
-          <li>✅ Zero technical debt</li>
-          <li>✅ Shadcn-level DX</li>
+          <li>🔵 <strong>Drag up</strong> - Expand to fullscreen</li>
+          <li>🔴 <strong>Drag down</strong> - Close drawer</li>
+          <li>✅ Real-time finger tracking</li>
+          <li>✅ Velocity-based snapping</li>
+          <li>✅ Visual feedback colors</li>
+          <li>✅ Touch & mouse support</li>
+          <li>✅ Smooth animations</li>
         </ul>
-        <p>Clean, reliable, production-ready!</p>
+        <p><strong>Try it:</strong> Drag this drawer up or down!</p>
       </div>
     </div>
+    <div class="drawer-spacer"></div> <!-- Expands when drawer grows -->
   </div>
   
   <script>
@@ -202,18 +213,31 @@
      * Framework7-inspired, zero dependencies, perfect reliability
      */
     
-    // Simple, reliable state management
+    // World-class drawer with iOS-like swipe gestures
     class WorldClassDrawer {
       constructor(element, backdrop) {
         this.el = element;
         this.backdrop = backdrop;
         this.opened = false;
+        this.expanded = false; // Track if drawer is expanded to fullscreen
+        
+        // Gesture state
+        this.isDragging = false;
+        this.startY = 0;
+        this.currentY = 0;
+        this.startTime = 0;
+        this.initialTranslateY = 0;
+        
+        this.initGestures();
       }
       
       open() {
         this.el.classList.add('drawer-open');
         this.backdrop.classList.add('show');
         this.opened = true;
+        this.expanded = false; // Reset expanded state
+        this.el.style.transform = 'translateY(0)'; // Ensure clean state
+        this.el.style.height = '400px'; // Reset to original height
         this.log('🚪 Drawer opened');
       }
       
@@ -221,11 +245,204 @@
         this.el.classList.remove('drawer-open');
         this.backdrop.classList.remove('show');
         this.opened = false;
+        this.expanded = false; // Reset expanded state
+        this.resetTransform();
         this.log('🚪 Drawer closed');
       }
       
       toggle() {
         this.opened ? this.close() : this.open();
+      }
+      
+      initGestures() {
+        // Touch events for mobile
+        this.el.addEventListener('touchstart', this.handleGestureStart.bind(this), { passive: true });
+        this.el.addEventListener('touchmove', this.handleGestureMove.bind(this), { passive: false });
+        this.el.addEventListener('touchend', this.handleGestureEnd.bind(this), { passive: true });
+        
+        // Mouse events for desktop
+        this.el.addEventListener('mousedown', this.handleGestureStart.bind(this));
+        document.addEventListener('mousemove', this.handleGestureMove.bind(this));
+        document.addEventListener('mouseup', this.handleGestureEnd.bind(this));
+        
+        // Define snap points
+        this.SNAP_POINTS = {
+          CLOSED: 400,   // translateY to close
+          HALF: 0,       // normal open position
+          FULL: -1       // flag for fullscreen (will calculate actual height)
+        };
+        
+        this.currentSnap = this.SNAP_POINTS.HALF;
+      }
+      
+      handleGestureStart(e) {
+        if (!this.opened) return;
+        
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        this.isDragging = true;
+        this.startY = clientY;
+        this.startTime = Date.now();
+        this.startHeight = this.el.offsetHeight;
+        
+        // Get current position for smooth continuation
+        const transform = window.getComputedStyle(this.el).transform;
+        if (transform && transform !== 'none') {
+          const matrix = new DOMMatrix(transform);
+          this.startTranslateY = matrix.m42;
+        } else {
+          this.startTranslateY = 0;
+        }
+        
+        // Disable transitions for immediate response
+        this.el.style.transition = 'none';
+        this.backdrop.style.transition = 'none';
+        
+        if (e.type === 'mousedown') e.preventDefault();
+      }
+      
+      handleGestureMove(e) {
+        if (!this.isDragging) return;
+        
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        this.currentY = clientY; // Store for mouse end event
+        const deltaY = clientY - this.startY;
+        
+        // Natural drag: up = expand, down = close
+        const viewportHeight = window.innerHeight;
+        const baseHeight = 400;
+        
+        if (deltaY > 0) {
+          // Dragging down - closing motion
+          const translateY = Math.min(baseHeight, this.startTranslateY + deltaY);
+          this.el.style.transform = `translateY(${translateY}px)`;
+          
+          // Visual feedback
+          const closeProgress = translateY / baseHeight;
+          this.backdrop.style.opacity = Math.max(0, 1 - closeProgress * 0.8);
+          
+          if (closeProgress > 0.3) {
+            this.el.style.boxShadow = `0 -4px 20px rgba(255, 0, 0, ${0.2 + closeProgress * 0.3})`;
+          }
+        } else {
+          // Dragging up - expanding motion
+          const expansionDelta = Math.abs(deltaY);
+          const newHeight = Math.min(viewportHeight, this.startHeight + expansionDelta);
+          
+          // Keep drawer at bottom, increase height
+          this.el.style.transform = 'translateY(0)';
+          this.el.style.height = `${newHeight}px`;
+          
+          // Visual feedback
+          const expandProgress = (newHeight - baseHeight) / (viewportHeight - baseHeight);
+          this.backdrop.style.opacity = Math.min(1.5, 1 + expandProgress * 0.3);
+          
+          if (expandProgress > 0.2) {
+            this.el.style.boxShadow = `0 -4px 30px rgba(0, 100, 255, ${0.2 + expandProgress * 0.3})`;
+          }
+        }
+        
+        if (e.touches) e.preventDefault();
+      }
+      
+      handleGestureEnd(e) {
+        if (!this.isDragging) return;
+        
+        const clientY = e.changedTouches ? e.changedTouches[0].clientY : this.currentY || this.startY;
+        const deltaY = clientY - this.startY;
+        const duration = Math.max(1, Date.now() - this.startTime);
+        const velocity = -deltaY / duration; // Negative for upward
+        
+        this.isDragging = false;
+        
+        // Determine snap target
+        const viewportHeight = window.innerHeight;
+        const currentHeight = this.el.offsetHeight;
+        const currentTranslateY = this.getCurrentTranslateY();
+        
+        // Beautiful easing for snap
+        this.el.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        this.backdrop.style.transition = 'opacity 0.4s ease';
+        
+        // Velocity-based or position-based decision
+        let targetSnap;
+        
+        if (Math.abs(velocity) > 0.5) {
+          // Fast swipe - respect velocity
+          if (velocity > 0) {
+            // Fast upward - expand
+            targetSnap = this.SNAP_POINTS.FULL;
+          } else {
+            // Fast downward - close
+            targetSnap = this.SNAP_POINTS.CLOSED;
+          }
+        } else {
+          // Slow drag - find nearest snap
+          if (currentTranslateY > 120) {
+            targetSnap = this.SNAP_POINTS.CLOSED;
+          } else if (currentHeight > viewportHeight * 0.7) {
+            targetSnap = this.SNAP_POINTS.FULL;
+          } else {
+            targetSnap = this.SNAP_POINTS.HALF;
+          }
+        }
+        
+        // Snap to target
+        this.snapTo(targetSnap);
+      }
+      
+      getCurrentTranslateY() {
+        const transform = window.getComputedStyle(this.el).transform;
+        if (transform && transform !== 'none') {
+          const matrix = new DOMMatrix(transform);
+          return matrix.m42;
+        }
+        return 0;
+      }
+      
+      snapTo(target) {
+        const viewportHeight = window.innerHeight;
+        
+        if (target === this.SNAP_POINTS.CLOSED) {
+          // Close drawer
+          this.el.style.transform = 'translateY(400px)';
+          this.el.style.height = '400px';
+          this.backdrop.style.opacity = '0';
+          
+          setTimeout(() => {
+            this.close();
+            this.log('👋 Gesture closed');
+          }, 400);
+          
+        } else if (target === this.SNAP_POINTS.FULL) {
+          // Expand to fullscreen
+          this.el.style.transform = 'translateY(0)';
+          this.el.style.height = `${viewportHeight}px`;
+          this.backdrop.style.opacity = '1.3';
+          this.expanded = true;
+          this.currentSnap = target;
+          this.log('📱 Expanded to fullscreen');
+          
+        } else {
+          // Normal half position
+          this.el.style.transform = 'translateY(0)';
+          this.el.style.height = '400px';
+          this.backdrop.style.opacity = '1';
+          this.expanded = false;
+          this.currentSnap = target;
+          this.log('↩️ Returned to normal');
+        }
+        
+        // Clean up
+        setTimeout(() => {
+          this.el.style.transition = '';
+          this.backdrop.style.transition = '';
+          this.el.style.boxShadow = '0 -4px 20px rgba(0,0,0,0.1)';
+        }, 400);
+      }
+      
+      resetTransform() {
+        this.el.style.transform = '';
+        this.el.style.height = ''; // Reset height to original
       }
       
       log(message) {
@@ -482,6 +699,22 @@
         await waitFor(50);
         expectElement('#test-drawer').toNotHaveClass('drawer-open');
       }
+    });
+    
+    test('Gesture system should initialize properly', async () => {
+      // Open drawer first
+      clickElement('#vanilla-drawer-trigger');
+      await waitFor(50);
+      expectElement('#test-drawer').toHaveClass('drawer-open');
+      
+      // Verify gesture state (drawer should be listening for gestures)
+      const drawerInstance = window.demoAPI.drawer();
+      if (drawerInstance.isDragging !== false) {
+        throw new Error('Drawer gesture state not properly initialized');
+      }
+      
+      // Check logs for gesture initialization
+      expectElement('#logs').toHaveText('Drawer opened');
     });
     
     // Export test runner

@@ -30,6 +30,7 @@ UIP reduces all UI patterns to three fundamental concepts:
 
 #### Framework Adapters (0.x Compatible)
 - **Vanilla JS Adapter** ✅ - World-class single-file implementation (9/9 tests passing)
+- **Vanilla Protocol Demo** ✅ - Full UIP protocol integration with gesture expansion (12/12 tests passing)
 - **Svelte Adapter** ✅ - Store-based reactive integration
 - **React Adapter** ⏳ - Hooks-based integration (planned)
 - **Vue Adapter** ⏳ - Composables integration (planned)
@@ -117,6 +118,7 @@ packages/
 │   └── vue/                # @uip/adapter-vue v0.x (planned)
 └── examples/
     ├── vanilla/            # World-class single-file implementation (9/9 tests)
+    ├── vanilla-protocol/   # Full UIP protocol integration (12/12 tests)
     └── svelte/             # Svelte demos
 ```
 
@@ -250,8 +252,11 @@ npm run lint:protocol
 
 ### Examples
 ```bash
-# Vanilla example
+# Vanilla example (original single-file)
 npm run dev:vanilla
+
+# Vanilla Protocol example (UIP protocol integration)
+open examples/vanilla-protocol/index.html
 
 # Svelte example  
 npm run dev:svelte

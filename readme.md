@@ -2,11 +2,11 @@
 
 > **Build once, use everywhere.** A revolutionary protocol for creating truly universal UI primitives.
 
-[![Version](https://img.shields.io/npm/v/@UICP/core?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@UICP/core)
-[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@UICP/core?style=flat&colorA=000000&colorB=000000)](https://bundlephobia.com/package/@UICP/core)
-[![License](https://img.shields.io/npm/l/@UICP/core?style=flat&colorA=000000&colorB=000000)](https://github.com/universal-ui-protocol/UICP/blob/main/LICENSE)
+[![Version](https://img.shields.io/npm/v/@uicp/core?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@uicp/core)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@uicp/core?style=flat&colorA=000000&colorB=000000)](https://bundlephobia.com/package/@uicp/core)
+[![License](https://img.shields.io/npm/l/@uicp/core?style=flat&colorA=000000&colorB=000000)](https://github.com/universal-ui-protocol/uicp/blob/main/LICENSE)
 
-## What is UICP?
+## What is uicp?
 
 **Universal UI Context Protocol** treats user interfaces as **standardized protocols** rather than components. Instead of building framework-specific components, you create universal primitives that work everywhere.
 
@@ -17,7 +17,7 @@ Every user interface can be reduced to these three fundamental concepts:
 - **Transitions** - How state changes over time with animations  
 - **Interactions** - How users manipulate state through gestures and input
 
-## Why UICP?
+## Why uicp?
 
 ### The Problem
 ```javascript
@@ -29,7 +29,7 @@ Every user interface can be reduced to these three fundamental concepts:
 
 ### The Solution
 ```javascript
-// UICP: Universal primitives, 3KB total
+// uicp: Universal primitives, 3KB total
 const modal = createModal();   // Works everywhere
 modal.open();                  // Same API always
 ```
@@ -47,12 +47,12 @@ modal.open();                  // Same API always
 
 ### Install Core
 ```bash
-npm install @UICP/core
+npm install @uicp/core
 ```
 
 ### Basic Usage
 ```javascript
-import { createDrawer } from '@UICP/core';
+import { createDrawer } from '@uicp/core';
 
 // Create primitive
 const drawer = createDrawer();
@@ -72,7 +72,7 @@ drawer.on('change', ({ isOpen }) => {
 
 #### React (Hooks)
 ```javascript
-import { useDrawer } from '@UICP/adapter-react';
+import { useDrawer } from '@uicp/adapter-react';
 
 function MyDrawer() {
   const [drawer, { open, close, toggle }] = useDrawer();
@@ -91,7 +91,7 @@ function MyDrawer() {
 #### Svelte (Stores)
 ```svelte
 <script>
-  import { createDrawerStore } from '@UICP/adapter-svelte';
+  import { createDrawerStore } from '@uicp/adapter-svelte';
   
   const drawer = createDrawerStore();
 </script>
@@ -115,7 +115,7 @@ function MyDrawer() {
 </template>
 
 <script setup>
-import { useDrawer } from '@UICP/adapter-vue';
+import { useDrawer } from '@uicp/adapter-vue';
 
 const { drawer, open, close, toggle } = useDrawer();
 </script>
@@ -123,7 +123,7 @@ const { drawer, open, close, toggle } = useDrawer();
 
 ## Universal Primitives
 
-UICP includes 5 fundamental primitives that cover 90% of UI patterns:
+uicp includes 5 fundamental primitives that cover 90% of UI patterns:
 
 | Primitive | Purpose | State | Use Cases |
 |-----------|---------|-------|-----------|
@@ -165,7 +165,7 @@ Extend primitives with universal plugins that work across all compatible types:
 
 ### Gesture Plugin
 ```javascript
-import { gesturePlugin } from '@UICP/plugin-gesture';
+import { gesturePlugin } from '@uicp/plugin-gesture';
 
 const drawer = createDrawer()
   .use(gesturePlugin({ 
@@ -176,7 +176,7 @@ const drawer = createDrawer()
 
 ### Animation Plugin
 ```javascript
-import { animatePlugin } from '@UICP/plugin-animate';
+import { animatePlugin } from '@uicp/plugin-animate';
 
 const modal = createModal()
   .use(animatePlugin({
@@ -188,7 +188,7 @@ const modal = createModal()
 
 ### Persistence Plugin
 ```javascript
-import { persistPlugin } from '@UICP/plugin-persist';
+import { persistPlugin } from '@uicp/plugin-persist';
 
 const drawer = createDrawer()
   .use(persistPlugin('drawer-state')); // Auto-save to localStorage
@@ -208,7 +208,7 @@ const drawer = createDrawer()
 
 ### Tabs with Drag-to-Select
 ```javascript
-import { createTabs, gesturePlugin } from '@UICP/core';
+import { createTabs, gesturePlugin } from '@uicp/core';
 
 const tabs = createTabs({
   items: ['Home', 'About', 'Contact'],
@@ -230,7 +230,7 @@ tabs.on('change', ({ activeIndex, activeItem }) => {
 
 ### Drawer with Physics
 ```javascript
-import { createDrawer, gesturePlugin, physicsPlugin } from '@UICP/core';
+import { createDrawer, gesturePlugin, physicsPlugin } from '@uicp/core';
 
 const drawer = createDrawer({ position: 'left', size: 320 })
   .use(gesturePlugin({ 
@@ -264,10 +264,10 @@ modals.help.open();       // z-index: 1002
 
 ```bash
 # Choose your framework adapter
-npm install @UICP/adapter-react    # React hooks
-npm install @UICP/adapter-vue      # Vue composables  
-npm install @UICP/adapter-svelte   # Svelte stores
-npm install @UICP/adapter-vanilla  # Vanilla JS helpers
+npm install @uicp/adapter-react    # React hooks
+npm install @uicp/adapter-vue      # Vue composables  
+npm install @uicp/adapter-svelte   # Svelte stores
+npm install @uicp/adapter-vanilla  # Vanilla JS helpers
 ```
 
 ### Adapter Features
@@ -282,13 +282,13 @@ npm install @UICP/adapter-vanilla  # Vanilla JS helpers
 
 ## Bundle Size Comparison
 
-UICP delivers more functionality with dramatically smaller bundles:
+uicp delivers more functionality with dramatically smaller bundles:
 
 | Library | Bundle Size | Features |
 |---------|-------------|----------|
-| **UICP Core** | 3 KB | 5 primitives + state management |
-| **UICP + Gestures** | 5 KB | Core + touch/mouse interactions |
-| **UICP Full Setup** | 8 KB | Core + plugins + adapter |
+| **uicp Core** | 3 KB | 5 primitives + state management |
+| **uicp + Gestures** | 5 KB | Core + touch/mouse interactions |
+| **uicp Full Setup** | 8 KB | Core + plugins + adapter |
 | | |
 | Radix UI | 45 KB | React-only components |
 | Headless UI | 35 KB | React/Vue components |  
@@ -296,7 +296,7 @@ UICP delivers more functionality with dramatically smaller bundles:
 
 ## Performance
 
-UICP is built for performance from the ground up:
+uicp is built for performance from the ground up:
 
 - **State Updates**: <1ms per update
 - **Event Emission**: <0.1ms per event  
@@ -327,7 +327,7 @@ All primitives include comprehensive accessibility features:
 Full TypeScript support with intelligent type inference:
 
 ```typescript
-import type { DrawerInstance } from '@UICP/core';
+import type { DrawerInstance } from '@uicp/core';
 
 const drawer: DrawerInstance = createDrawer({
   position: 'left'  // Type: 'left' | 'right' | 'top' | 'bottom'
@@ -342,8 +342,8 @@ drawer.set('value.invalid', true);     // ❌ TypeScript error
 ### Local Development
 ```bash
 # Clone repository
-git clone https://github.com/universal-ui-protocol/UICP
-cd UICP
+git clone https://github.com/universal-ui-protocol/uicp
+cd uicp
 
 # Install dependencies  
 npm install
@@ -399,9 +399,9 @@ npm run type-check     # TypeScript checking
 
 ## Community
 
-- **GitHub**: [universal-ui-protocol/UICP](https://github.com/universal-ui-protocol/UICP)
-- **Discord**: [Join our community](https://discord.gg/UICP)
-- **Twitter**: [@UniversalUICProtocol](https://twitter.com/UniversalUICProtocol)
+- **GitHub**: [universal-ui-protocol/uicp](https://github.com/universal-ui-protocol/uicp)
+- **Discord**: [Join our community](https://discord.gg/uicp)
+- **Twitter**: [@Universaluicprotocol](https://twitter.com/Universaluicprotocol)
 
 ## Contributing
 
@@ -414,7 +414,7 @@ We welcome contributions! See our [Contributing Guide](./CONTRIBUTING.md) for de
 
 ## License
 
-MIT © [Universal UI Context Protocol](https://github.com/universal-ui-protocol/UICP)
+MIT © [Universal UI Context Protocol](https://github.com/universal-ui-protocol/uicp)
 
 ---
 
@@ -429,7 +429,7 @@ Traditional UI libraries provide **components** - pre-built solutions that work 
 <ChakraDrawer />    // Full design system overhead
 ```
 
-UICP provides **protocols** - universal patterns that work everywhere:
+uicp provides **protocols** - universal patterns that work everywhere:
 
 ```javascript
 // Protocol approach: Universal, minimal, flexible

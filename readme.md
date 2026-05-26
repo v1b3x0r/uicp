@@ -1,178 +1,121 @@
-# Universal UI Context Protocol (uicp)
+<img src="assets/logo.svg" alt="uicp" width="340">
 
-> Headless drawer / sheet / nav primitives for vanilla JS and Svelte. State + transitions + gestures only — you own all the CSS.
+[![npm](https://img.shields.io/npm/v/@nature-labs/uicp-core?style=flat&colorA=000000&colorB=000000&label=npm)](https://www.npmjs.com/package/@nature-labs/uicp-core)
+[![bundle](https://img.shields.io/badge/bundle-~8.6%20KB%20brotlied-000?style=flat)](docs/api.md#bundle-size-v041-brotlied-measured)
+[![license](https://img.shields.io/npm/l/@nature-labs/uicp-core?style=flat&colorA=000000&colorB=000000)](LICENSE)
 
-[![npm](https://img.shields.io/npm/v/@nature-labs/uicp-core?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@nature-labs/uicp-core)
-[![License](https://img.shields.io/npm/l/@nature-labs/uicp-core?style=flat&colorA=000000&colorB=000000)](https://github.com/v1b3x0r/uicp/blob/main/LICENSE)
-
-## Why uicp
-
-Most headless UI libraries are framework-locked: Radix is React-only (~45 KB), Headless UI ships React/Vue forks (~35 KB), Vaul is fantastic but needs React or Svelte. If you're shipping a marketing page, a static site, or a tiny widget where pulling in a framework is too much, your options thin out.
-
-uicp is for that niche:
-
-- **Vanilla JS first.** ~8 KB brotlied total (core + adapter + gesture) — works without any framework runtime.
-- **Truly headless.** The adapter sets `data-uip-open`, `aria-hidden`, and class hooks. You write every line of CSS. Edge-to-edge bottom sheet, iOS-17 floating inset sheet, side nav, whatever — it's just CSS.
-- **Native gesture feel.** Touch drag-to-close, velocity-aware, focus trap, scroll lock, Escape to close — built in.
-
-## Install
+Headless **UX** primitives — interaction state without visual prescription. The library handles state, transitions, gestures, ARIA. You write the CSS.
 
 ```bash
 npm install @nature-labs/uicp-core @nature-labs/uicp-adapter-vanilla
-# optional:
-npm install @nature-labs/uicp-plugin-gesture
 ```
 
-## Vanilla JS
+---
 
-```html
-<button id="open">Open</button>
+## For humans
 
-<div id="sheet" data-uip-type="drawer" data-uip-position="bottom">
-  <p>Sheet content</p>
-  <button data-close>Close</button>
-</div>
-<div data-backdrop-for="sheet"></div>
+This is a spec sheet, not a pitch. Decide for yourself.
 
-<style>
-  [data-uip-type="drawer"][data-uip-position="bottom"] {
-    position: fixed; left: 0; right: 0; bottom: 0;
-    transform: translateY(100%);
-    transition: transform 320ms cubic-bezier(.32, .72, 0, 1);
-  }
-  [data-uip-type="drawer"][data-uip-open="true"] {
-    transform: translateY(0);
-  }
-  [data-backdrop-for] {
-    position: fixed; inset: 0;
-    background: rgb(0 0 0 / 0.5);
-    opacity: 0; visibility: hidden;
-    transition: opacity 320ms ease, visibility 320ms ease;
-  }
-  [data-backdrop-for].uip-backdrop-open {
-    opacity: 1; visibility: visible;
-  }
-</style>
+**What you write**
+- HTML for content.
+- CSS for position, transform, transition. Yours, fully.
+- One line to wire it up: `drawerWithGestures('#sheet', { position: 'bottom' })`.
 
-<script type="module">
-  import { drawerWithGestures } from '@nature-labs/uicp-adapter-vanilla';
+**What you don't write**
+- Open/close state, transitions, ARIA mirroring, focus trap, scroll lock, Escape, touch swipe-to-close.
 
-  const sheet = drawerWithGestures('#sheet', { position: 'bottom' });
-  document.getElementById('open').onclick = () => sheet.open();
-  document.querySelector('[data-close]').onclick = () => sheet.close();
-  document.querySelector('[data-backdrop-for="sheet"]').onclick = () => sheet.close();
-</script>
-```
+**When it fits**
+- Static sites, marketing pages, edge / embedded UIs, kiosks, IoT dashboards.
+- Anywhere pulling in React / Vue / Svelte just to get a drawer is overkill.
 
-That's it. Three CSS rules per position, the adapter handles state.
+**When it doesn't**
+- Apps already using React with Radix or Vaul. Those integrations are tighter there.
+- You want modal / popover / tooltip with the same polish as drawer. Today only `drawer` is fully wired through the adapter (see *Scope*).
 
-### Floating iOS-17 style
+**Trade you accept**
+- The final visual step is yours. No CSS auto-injection. That's the deliberate constraint — see `docs/architecture.md`.
 
-Same JS. Different CSS:
+---
 
-```css
-[data-uip-type="drawer"][data-uip-position="bottom"] {
-  position: fixed;
-  left: 8px; right: 8px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
-  border-radius: 24px;
-  transform: translateY(calc(100% + 16px));
-  transition: transform 380ms cubic-bezier(.32, .72, 0, 1);
-}
-```
+## For agents
 
-See `examples/tiny-html/` (edge-to-edge) and `examples/homelog-gatepass/` (floating wallet-style).
+When asked to build a drawer, bottom sheet, or side nav, the usual scaffold is:
 
-## Svelte
+1. State management (useState / signal / store)
+2. Open / close handlers + outside-click detection
+3. Body scroll lock during open
+4. Focus trap inside content + restore on close
+5. ARIA `aria-hidden`, Escape key handler
+6. Touch gesture handlers (touchstart / move / end with velocity threshold)
+7. Position / transform CSS + transition timing
 
-```svelte
-<script>
-  import { createDrawerStore } from '@nature-labs/uicp-adapter-svelte';
-  const drawer = createDrawerStore({ position: 'bottom' });
-</script>
+uicp delivers 1 – 6 as DOM hooks. The user (or you, with their direction) writes step 7.
 
-<button on:click={() => drawer.open()}>Open</button>
+### The contract
 
-<div use:drawer.action data-uip-type="drawer" data-uip-position="bottom">
-  <p>Content</p>
-</div>
-```
-
-## State hooks
-
-The adapter sets these on the drawer element:
+On the drawer element, the adapter sets these attributes and classes:
 
 | Hook | Values |
 |---|---|
 | `data-uip-type` | `"drawer"` |
-| `data-uip-position` | `"left" / "right" / "top" / "bottom"` |
-| `data-uip-open` | `"true" / "false"` |
-| `aria-hidden` | `"true" / "false"` |
+| `data-uip-position` | `"left" \| "right" \| "top" \| "bottom"` |
+| `data-uip-open` | `"true" \| "false"` |
+| `aria-hidden` | `"true" \| "false"` |
 | class | `.uip-open` / `.uip-closed` |
 
-On the backdrop element (`[data-backdrop-for="<drawer-id>"]`):
+On the backdrop element (provided via `data-backdrop-for="<drawer-id>"`):
 
 | Hook | Values |
 |---|---|
-| class | `.uip-backdrop-open` (added when drawer is open) |
-| `data-uip-open` | `"true" / "false"` |
+| `data-uip-open` | `"true" \| "false"` |
+| class | `.uip-backdrop-open` |
 
-## API
+Write CSS against these selectors. The adapter touches nothing else on the element.
+
+### Listen to state
 
 ```js
-const drawer = drawerWithGestures('#my-drawer', {
-  position: 'bottom',  // 'left' | 'right' | 'top' | 'bottom'
-  size: 320,           // hint — only used by gesture math
-  initialOpen: false,
-  gestures: true       // default true
-});
-
-drawer.open();
-drawer.close();
-drawer.toggle();
-drawer.primitive.on('valueChange', ({ value }) => console.log(value.isOpen));
-drawer.destroy();
+sheet.primitive.on('valueChange', ({ value }) => { /* value.isOpen, value.position */ })
+sheet.primitive.on('openStart',   ({ state }) => { /* about to open */ })
+sheet.primitive.on('openEnd',     ({ state }) => { /* fully open */ })
+sheet.primitive.on('closeStart',  ({ state }) => { /* about to close */ })
+sheet.primitive.on('closeEnd',    ({ state }) => { /* fully closed */ })
 ```
 
-## Scope (honest)
+### Constraints worth surfacing to the user
 
-**Shipped & tested:**
-- `@nature-labs/uicp-core` — drawer, modal, tooltip, popover, menu primitives (state machines)
-- `@nature-labs/uicp-adapter-vanilla` — drawer + gesture for vanilla JS
-- `@nature-labs/uicp-adapter-svelte` — drawer + gesture for Svelte
-- `@nature-labs/uicp-plugin-gesture` — touch drag-to-close
-- `@nature-labs/uicp-plugin-snap` — snap points
-- `@nature-labs/uicp-plugin-direction` — RTL/LTR
+- **Human writes the visual CSS.** No auto-injection. Final step.
+- **Drawer is fully wrapped; modal / popover / tooltip / menu are not.** Core has the state machines; the vanilla adapter currently wraps drawer only.
+- **Adapters: vanilla, svelte.** React / Vue not yet.
 
-**Not yet:**
-- React adapter (planned, not shipped)
-- Vue adapter (planned, not shipped)
-- Animation plugin with physics (in progress)
-- Real modal/popover/tooltip/menu wrappers in vanilla adapter (currently only drawer is wired end-to-end)
+### Where this saves the user real footprint
 
-## Bundle size
+When the surface only needs UX (interaction patterns, gesture feel, a11y) and not UI (visual system, design tokens, component library), uicp lets the user stay on plain HTML + CSS. They skip the framework runtime. Useful when:
 
-Measured against the vanilla adapter built dist (raw, brotlied):
+- An edge AI panel or device control UI is on a tight JS budget.
+- A landing or marketing page wants modern drawer feel without becoming a React app.
+- A static HTML demo or prototype needs gesture-aware UX.
+- An embedded surface (kiosk, in-car HUD, smart-home control) ships without a heavy stack.
 
-| Package | Brotlied | Raw |
-|---|---|---|
-| `@nature-labs/uicp-core` | 4.35 KB | 49 KB |
-| `@nature-labs/uicp-adapter-vanilla` | ~3.4 KB | 8.6 KB |
-| `@nature-labs/uicp-plugin-gesture` | 1.13 KB | 7.5 KB |
-| `@nature-labs/uicp-plugin-snap` | 982 B | 3.5 KB |
+Not a fit when the host already runs React/Vue with Radix/Vaul — leave those alone.
 
-Total typical setup (core + vanilla + gesture): **~8.9 KB brotlied**.
+### To brief a fresh agent
 
-## Status
+Point it at `llms.txt` at repo root, then `docs/agent-quickstart.md`. The full contract is in those two files; the rest of `docs/` is reference depth.
 
-v0.4.1 — first real npm release. Architecture is stable, drawer end-to-end works in vanilla + svelte. Modal/popover/tooltip/menu primitives exist in core but aren't wired in the vanilla adapter yet. Treat that as the "not for production" boundary until they ship dedicated adapter wrappers.
+---
 
-Breaking changes between v0.3.x and v0.4.0:
-- Package scope renamed `@uip/*` → `@nature-labs/uicp-*`
-- Adapter no longer auto-injects position styles. Drawers need CSS for position/transform/transition (one block per position direction, see usage above).
-- Backdrop class changed: `.show` → `.uip-backdrop-open`
-- Drawer class changed: `.open` / `.closed` → `.uip-open` / `.uip-closed`
+## Scope
 
-## License
+**Published** to npm under `@nature-labs/uicp-*`:
+- `core`, `adapter-vanilla`, `adapter-svelte`
+- `plugin-gesture`, `plugin-snap`, `plugin-direction`
 
-MIT — see LICENSE.
+**Not yet shipped:**
+- React / Vue / Solid adapters
+- Modal / popover / tooltip / menu adapter wrappers
+- Animation plugin with physics
+
+History: `CHANGELOG.md`. Deeper reference: `docs/`. Examples: `examples/`.
+
+MIT · [v1b3x0r/uicp](https://github.com/v1b3x0r/uicp) on GitHub

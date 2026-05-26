@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 88" fill="none" role="img" aria-label="uicp logo">
+  <title>uicp — headless UX primitives</title>
+  <!-- Iconic bottom-sheet with drag handle: the most recognizable mark for a headless drawer protocol. -->
+  <g transform="translate(8, 8)" fill="currentColor">
+    <rect x="0" y="0" width="72" height="72" rx="14" opacity="0.06"/>
+    <rect x="0" y="38" width="72" height="34" rx="12" opacity="0.18"/>
+    <rect x="28" y="45" width="16" height="3" rx="1.5"/>
+  </g>
+  <!-- Wordmark + tag -->
+  <text x="96" y="48" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="26" font-weight="700" fill="currentColor" letter-spacing="-0.5">uicp</text>
+  <text x="96" y="68" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="currentColor" opacity="0.55">@nature-labs · headless UX primitives</text>
+</svg>

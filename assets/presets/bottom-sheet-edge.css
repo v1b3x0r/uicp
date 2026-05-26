@@ -1,0 +1,44 @@
+/* uicp preset · bottom-sheet-edge
+ *
+ * Standard bottom sheet — slides up from the bottom edge, full viewport width.
+ * Most common mobile pattern. Use for: action sheets, filter panels,
+ * detail views that take over the screen.
+ *
+ * Requires: a drawer with data-uip-type="drawer" data-uip-position="bottom"
+ *           a backdrop with data-backdrop-for="<drawer-id>"
+ */
+
+[data-uip-type="drawer"][data-uip-position="bottom"] {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -8px 24px -4px rgb(0 0 0 / 0.12);
+  transform: translateY(100%);
+  transition: transform 320ms cubic-bezier(.32, .72, 0, 1);
+  will-change: transform;
+  z-index: 50;
+}
+
+[data-uip-type="drawer"][data-uip-position="bottom"][data-uip-open="true"] {
+  transform: translateY(0);
+}
+
+[data-backdrop-for] {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 320ms ease, visibility 320ms ease;
+  z-index: 40;
+}
+
+[data-backdrop-for].uip-backdrop-open {
+  opacity: 1;
+  visibility: visible;
+}

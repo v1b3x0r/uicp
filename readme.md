@@ -154,8 +154,15 @@ Point it at `llms.txt` at repo root, then `docs/agent-quickstart.md`. The contra
 - React / Vue / Solid adapters
 - Modal / popover / tooltip / menu adapter wrappers
 - Animation plugin with physics
-- `presets/` folder — drop-in CSS blocks (iOS-17 sheet, shadcn-style side nav, etc.) for one-line agent scaffolding
+- A bundled `@nature-labs/uicp-presets` npm package (presets currently ship as plain CSS in `assets/presets/` — 5 drop-in blocks for common drawer patterns)
 
 History: `CHANGELOG.md`. Reference: `docs/`. Examples: `examples/`.
 
 MIT · [v1b3x0r/uicp](https://github.com/v1b3x0r/uicp)
+
+---
+
+*A note from the build*
+
+uicp was repaired in one afternoon — by trimming what it claimed and trusting what it was always doing. State, gesture, ARIA: the half nobody wants to write twice.
+The other half waits for you. That's the design.

@@ -1,0 +1,53 @@
+/* uicp preset · bottom-sheet-floating
+ *
+ * Floating bottom sheet — inset from all edges, rounded on all corners,
+ * sits visually above the viewport with shadow. Safe-area aware.
+ *
+ * Visual reference: App Store sheets, Wallet card pickers, modern banking
+ * apps. The pattern several iOS / Android apps converge on for
+ * "elevated" sheets (vs edge-to-edge action sheets).
+ *
+ * Pairs well with a blurred backdrop (see backdrop block below).
+ *
+ * Requires: a drawer with data-uip-type="drawer" data-uip-position="bottom"
+ *           a backdrop with data-backdrop-for="<drawer-id>"
+ */
+
+[data-uip-type="drawer"][data-uip-position="bottom"] {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  max-width: 480px;
+  margin-inline: auto;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 12px 32px -8px rgb(0 0 0 / 0.25);
+  transform: translateY(calc(100% + 16px));
+  transition: transform 380ms cubic-bezier(.32, .72, 0, 1);
+  will-change: transform;
+  z-index: 50;
+}
+
+[data-uip-type="drawer"][data-uip-position="bottom"][data-uip-open="true"] {
+  transform: translateY(0);
+}
+
+[data-backdrop-for] {
+  position: fixed;
+  inset: 0;
+  background: rgb(15 23 42 / 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 320ms ease, visibility 320ms ease;
+  z-index: 40;
+}
+
+[data-backdrop-for].uip-backdrop-open {
+  opacity: 1;
+  visibility: visible;
+}

@@ -4,7 +4,7 @@
 [![bundle](https://img.shields.io/badge/bundle-~8.6%20KB%20brotlied-000?style=flat)](docs/api.md#bundle-size-v041-brotlied-measured)
 [![license](https://img.shields.io/npm/l/@nature-labs/uicp-core?style=flat&colorA=000000&colorB=000000)](LICENSE)
 
-Headless **UX** primitives — interaction state without visual prescription. The library handles state, transitions, gestures, ARIA. You write the CSS.
+Headless **UX** primitives — state machine, transitions, gestures, ARIA. ~8.6 KB. The visual layer is yours (or your agent's) to scaffold and polish.
 
 ```bash
 npm install @nature-labs/uicp-core @nature-labs/uicp-adapter-vanilla
@@ -14,32 +14,65 @@ npm install @nature-labs/uicp-core @nature-labs/uicp-adapter-vanilla
 
 ## For humans
 
-This is a spec sheet, not a pitch. Decide for yourself.
+uicp is the UX skeleton. The visual layer is a quick scaffold + a small polish pass — built for a human-and-agent workflow:
 
-**What you write**
-- HTML for content.
-- CSS for position, transform, transition. Yours, fully.
-- One line to wire it up: `drawerWithGestures('#sheet', { position: 'bottom' })`.
+1. Drop a `<div>` with content. Wire one line of JS.
+2. Agent scaffolds CSS from your intent ("iOS-17 floating sheet", "side nav with blur backdrop"). Output is a drop-in block.
+3. You polish where it's slightly off — the WordPress-plugin tweak vibe.
 
-**What you don't write**
-- Open/close state, transitions, ARIA mirroring, focus trap, scroll lock, Escape, touch swipe-to-close.
+**What uicp handles for you**
+
+Open / close state, transitions, ARIA mirroring, focus trap, body scroll lock, Escape key, touch swipe-to-close.
+
+**What you (or your agent) write**
+
+HTML for content. CSS for position, transform, transition. Starter blocks below — copy and adapt.
 
 **When it fits**
-- Static sites, marketing pages, edge / embedded UIs, kiosks, IoT dashboards.
-- Anywhere pulling in React / Vue / Svelte just to get a drawer is overkill.
+
+Static sites, marketing pages, edge / embedded UIs, kiosks, IoT dashboards, AI-prototype surfaces. Anywhere pulling in React/Vue/Svelte just for a drawer feels heavy.
 
 **When it doesn't**
-- Apps already using React with Radix or Vaul. Those integrations are tighter there.
-- You want modal / popover / tooltip with the same polish as drawer. Today only `drawer` is fully wired through the adapter (see *Scope*).
 
-**Trade you accept**
-- The final visual step is yours. No CSS auto-injection. That's the deliberate constraint — see `docs/architecture.md`.
+Apps already using React with Radix or Vaul — those integrations are tighter there. Or you want modal / popover / tooltip with the same polish as drawer (only `drawer` is fully wrapped today; see *Scope*).
+
+### Starter blocks (copy + adapt)
+
+Edge-to-edge bottom sheet:
+
+```css
+[data-uip-type="drawer"][data-uip-position="bottom"] {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  transform: translateY(100%);
+  transition: transform 320ms cubic-bezier(.32, .72, 0, 1);
+}
+[data-uip-type="drawer"][data-uip-position="bottom"][data-uip-open="true"] {
+  transform: translateY(0);
+}
+```
+
+iOS-17 floating sheet (inset, rounded, safe-area aware):
+
+```css
+[data-uip-type="drawer"][data-uip-position="bottom"] {
+  position: fixed; left: 8px; right: 8px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  border-radius: 24px;
+  transform: translateY(calc(100% + 16px));
+  transition: transform 380ms cubic-bezier(.32, .72, 0, 1);
+}
+[data-uip-type="drawer"][data-uip-position="bottom"][data-uip-open="true"] {
+  transform: translateY(0);
+}
+```
+
+Working references live in `examples/tiny-html/` and `examples/homelog-gatepass/`.
 
 ---
 
 ## For agents
 
-When asked to build a drawer, bottom sheet, or side nav, the usual scaffold is:
+When asked to build a drawer / bottom sheet / side nav, the usual scaffold is seven steps:
 
 1. State management (useState / signal / store)
 2. Open / close handlers + outside-click detection
@@ -49,11 +82,11 @@ When asked to build a drawer, bottom sheet, or side nav, the usual scaffold is:
 6. Touch gesture handlers (touchstart / move / end with velocity threshold)
 7. Position / transform CSS + transition timing
 
-uicp delivers 1 – 6 as DOM hooks. The user (or you, with their direction) writes step 7.
+uicp gives you 1 – 6 as DOM hooks. Your job is step 7 — generate convincing CSS from the user's intent. The user fine-tunes after.
 
 ### The contract
 
-On the drawer element, the adapter sets these attributes and classes:
+On the drawer element, the adapter sets:
 
 | Hook | Values |
 |---|---|
@@ -76,46 +109,53 @@ Write CSS against these selectors. The adapter touches nothing else on the eleme
 
 ```js
 sheet.primitive.on('valueChange', ({ value }) => { /* value.isOpen, value.position */ })
-sheet.primitive.on('openStart',   ({ state }) => { /* about to open */ })
-sheet.primitive.on('openEnd',     ({ state }) => { /* fully open */ })
-sheet.primitive.on('closeStart',  ({ state }) => { /* about to close */ })
-sheet.primitive.on('closeEnd',    ({ state }) => { /* fully closed */ })
+sheet.primitive.on('openStart',  ({ state }) => { /* about to open */ })
+sheet.primitive.on('openEnd',    ({ state }) => { /* fully open */ })
+sheet.primitive.on('closeStart', ({ state }) => { /* about to close */ })
+sheet.primitive.on('closeEnd',   ({ state }) => { /* fully closed */ })
 ```
 
-### Constraints worth surfacing to the user
+### Generating the visual layer convincingly
 
-- **Human writes the visual CSS.** No auto-injection. Final step.
-- **Drawer is fully wrapped; modal / popover / tooltip / menu are not.** Core has the state machines; the vanilla adapter currently wraps drawer only.
-- **Adapters: vanilla, svelte.** React / Vue not yet.
+- Use the `[data-uip-open="true"]` selector for the open state (more reliable than the class form).
+- For mobile bottom sheets: `transform: translateY()` + cubic-bezier `(.32, .72, 0, 1)` gives the iOS spring feel.
+- Backdrop fade: `opacity` + `visibility` together, ~320 ms ease.
+- Floating iOS-17 style: inset from edges (`left/right: 8px`), use `env(safe-area-inset-bottom)` for bottom margin.
+- See `examples/tiny-html/` and `examples/homelog-gatepass/` for full references the user has already approved.
 
-### Where this saves the user real footprint
+The user expects to make small tweaks on your output, not rewrite it. Aim for "WordPress plugin output" quality — works out of the box, polish-ready.
 
-When the surface only needs UX (interaction patterns, gesture feel, a11y) and not UI (visual system, design tokens, component library), uicp lets the user stay on plain HTML + CSS. They skip the framework runtime. Useful when:
+### Where uicp saves the user real footprint
+
+When the surface needs UX (interactions, gesture, a11y) but not a full UI system (design tokens, component library), uicp lets the user skip the framework runtime. Useful when:
 
 - An edge AI panel or device control UI is on a tight JS budget.
 - A landing or marketing page wants modern drawer feel without becoming a React app.
 - A static HTML demo or prototype needs gesture-aware UX.
 - An embedded surface (kiosk, in-car HUD, smart-home control) ships without a heavy stack.
 
-Not a fit when the host already runs React/Vue with Radix/Vaul — leave those alone.
+Not a fit when the host already runs React/Vue with Radix/Vaul.
 
 ### To brief a fresh agent
 
-Point it at `llms.txt` at repo root, then `docs/agent-quickstart.md`. The full contract is in those two files; the rest of `docs/` is reference depth.
+Point it at `llms.txt` at repo root, then `docs/agent-quickstart.md`. The contract + intent are in those two.
 
 ---
 
 ## Scope
 
-**Published** to npm under `@nature-labs/uicp-*`:
+**Published** under `@nature-labs/uicp-*`:
+
 - `core`, `adapter-vanilla`, `adapter-svelte`
 - `plugin-gesture`, `plugin-snap`, `plugin-direction`
 
 **Not yet shipped:**
+
 - React / Vue / Solid adapters
 - Modal / popover / tooltip / menu adapter wrappers
 - Animation plugin with physics
+- `presets/` folder — drop-in CSS blocks (iOS-17 sheet, shadcn-style side nav, etc.) for one-line agent scaffolding
 
-History: `CHANGELOG.md`. Deeper reference: `docs/`. Examples: `examples/`.
+History: `CHANGELOG.md`. Reference: `docs/`. Examples: `examples/`.
 
-MIT · [v1b3x0r/uicp](https://github.com/v1b3x0r/uicp) on GitHub
+MIT · [v1b3x0r/uicp](https://github.com/v1b3x0r/uicp)

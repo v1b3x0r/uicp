@@ -1,0 +1,62 @@
+# uicp
+
+> Headless drawer / sheet / nav primitives for vanilla JS and Svelte. ~8.6 KB brotlied total (core + adapter + gesture). You own all the CSS.
+
+uicp is a small, opinionated library targeting **static sites, marketing pages, and tiny widgets** that want modern drawer UX without pulling in a framework runtime. The adapter only sets DOM state hooks (data-attrs, ARIA, classes); the user writes every line of CSS for position, transform, and transition.
+
+Not a Radix/Vaul competitor for React-heavy apps. A complement to them for vanilla / static / non-framework contexts.
+
+## Quick start
+
+- [README.md](readme.md): Install, basic usage, framework adapters, bundle sizes
+- [CHANGELOG.md](CHANGELOG.md): Version history with breaking changes (v0.4.0 is the first real npm release)
+- [LICENSE](LICENSE): MIT
+
+## Examples (runnable)
+
+Run `python3 -m http.server 8088` from repo root, then:
+
+- [examples/tiny-html/](examples/tiny-html/): 3-direction drawer (bottom / right / left) edge-to-edge style, vanilla HTML + Tailwind CDN
+- [examples/homelog-gatepass/](examples/homelog-gatepass/): iOS-17 floating sheet pattern, Wallet-style Pass switcher, mobile-first
+
+Both demos are also documented in [examples/README.md](examples/README.md).
+
+## Docs
+
+- [docs/agent-quickstart.md](docs/agent-quickstart.md): 60-second briefing for AI agents landing in this repo
+- [docs/api.md](docs/api.md): Full API reference — `drawer()`, `drawerWithGestures()`, `drawerWithPlugins()`, events, plugin contract
+- [docs/architecture.md](docs/architecture.md): How the state machine works, the nested-path emit gotcha, plugin auto-detect
+- [CLAUDE.md](claude.md): Internal AI assistant notes — what NOT to change
+
+## State hooks (write your CSS against these)
+
+The adapter sets these on the drawer element:
+
+- `data-uip-type="drawer"`
+- `data-uip-position="left" | "right" | "top" | "bottom"`
+- `data-uip-open="true" | "false"`
+- `aria-hidden="true" | "false"`
+- class `.uip-open` / `.uip-closed`
+
+Backdrop (provide via `<div data-backdrop-for="drawer-id">`):
+
+- class `.uip-backdrop-open`
+- `data-uip-open="true" | "false"`
+
+## Package surface (npm)
+
+- `@uicp/core` — primitives + state machine
+- `@uicp/adapter-vanilla` — vanilla JS bindings
+- `@uicp/adapter-svelte` — Svelte store + action
+- `@uicp/plugin-gesture` — touch swipe-to-close
+- `@uicp/plugin-snap` — snap points
+- `@uicp/plugin-direction` — RTL/LTR
+
+Not yet shipped (don't reference these as if they exist):
+- React / Vue / Solid / Web Components adapters
+- Animation plugin with physics
+- Modal/popover/tooltip/menu wrappers in vanilla adapter (only `drawer` is wired through)
+
+## Source of truth
+
+For anything not covered here, read `claude.md` next — it captures gotchas and intent that aren't obvious from the code.

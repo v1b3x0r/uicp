@@ -1,5 +1,5 @@
 /**
- * @uicp/adapter-vanilla — Headless UI Protocol adapter for vanilla JS
+ * @nature-labs/uicp-adapter-vanilla — Headless UI Protocol adapter for vanilla JS
  *
  * State machine binder only. Sets data-attrs + classes; never inline styles.
  * You provide all CSS (position, transform, transition, layout).
@@ -15,7 +15,7 @@
  * adapter toggles .uip-backdrop-open on it.
  */
 
-import { createDrawer } from '@uicp/core';
+import { createDrawer } from '@nature-labs/uicp-core';
 
 /**
  * Tag element with type + position for CSS targeting. No inline styles.

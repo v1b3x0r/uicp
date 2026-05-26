@@ -1,6 +1,6 @@
 {
-  "name": "@uicp/plugin-animate",
-  "version": "0.4.0",
+  "name": "@nature-labs/uicp-plugin-animate",
+  "version": "0.4.1",
   "private": true,
   "description": "Universal UI Protocol - Animation Plugin (WIP, not in v0.4.0 release)",
   "type": "module",
@@ -32,7 +32,7 @@
     "tsup": "^8.0.0"
   },
   "peerDependencies": {
-    "@uicp/core": "^0.4.0"
+    "@nature-labs/uicp-core": "^0.4.1"
   },
   "repository": {
     "type": "git",

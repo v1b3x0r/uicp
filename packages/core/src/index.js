@@ -1,5 +1,5 @@
 /**
- * @uicp/core - Universal UI Protocol Core (v0.x)
+ * @nature-labs/uicp-core - Universal UI Protocol Core (v0.x)
  * Framework-agnostic UI primitives with accessibility built-in
  */
 

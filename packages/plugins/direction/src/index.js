@@ -1,5 +1,5 @@
 /**
- * @uicp/plugin-direction - Directional Positioning Plugin
+ * @nature-labs/uicp-plugin-direction - Directional Positioning Plugin
  * Handles drawer positioning (left, right, top, bottom) with smooth animations
  */
 

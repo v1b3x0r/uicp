@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { createDrawer } from '@uicp/core';
+import { createDrawer } from '@nature-labs/uicp-core';
 
 describe('DOM Manipulation', () => {
   let drawer;

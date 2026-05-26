@@ -5,12 +5,21 @@ All notable changes to Universal UI Protocol will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0] - 2026-05-26
+## [0.4.1] - 2026-05-26
 
-### 🎉 First real npm release as `@uicp/*` scope
+### Changed
+- **Scope rename**: `@uicp/*` → `@nature-labs/uicp-*`. The `uicp` org name was unavailable on npm (4-char scopes are squatted heavily). `@nature-labs` becomes an umbrella scope for the broader Viibe World OS ecosystem — future projects fit cleanly (`@nature-labs/hi-introvert-*`, `@nature-labs/mds-*`, etc.).
+- No code changes, same architecture and behavior as 0.4.0.
+
+### Note on 0.4.0
+- 0.4.0 was tagged in git but never reached the npm registry (publish blocked by failed `@uicp` org creation). 0.4.1 is the first version to actually appear on npm.
+
+## [0.4.0] - 2026-05-26 (tagged but not published to npm)
+
+### 🎉 Architectural milestone — true-headless refactor
 
 #### BREAKING
-- **Package scope renamed** `@uip/*` → `@uicp/*`. Folder name, repo, badges, and docs were all already "uicp"; package names are now consistent.
+- **Package scope renamed** `@uip/*` → `@uicp/*` (this scope turned out to be unavailable — see 0.4.1). Folder name, repo, badges, and docs were all already "uicp"; package names are now consistent.
 - **Adapter is now truly headless.** Removed all auto-injected inline styles (`POSITION_STYLES`, `OPEN_TRANSFORMS`, `CLOSED_TRANSFORMS`, `injectPositionStyles`). The user provides CSS for position, transform, and transition; the adapter only sets data-attrs and class hooks.
 - **Class hook names** `.open` / `.closed` → `.uip-open` / `.uip-closed`
 - **Backdrop class** `.show` → `.uip-backdrop-open`

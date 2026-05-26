@@ -1,5 +1,5 @@
 /**
- * @uicp/plugin-snap - Universal Snap Points Plugin
+ * @nature-labs/uicp-plugin-snap - Universal Snap Points Plugin
  * Smart sizing with snap points for all UI primitives
  */
 

@@ -1,6 +1,6 @@
 {
-  "name": "@uicp/plugin-position",
-  "version": "0.4.0",
+  "name": "@nature-labs/uicp-plugin-position",
+  "version": "0.4.1",
   "private": true,
   "description": "Universal positioning plugin for UI primitives (WIP, not in v0.4.0 release)",
   "main": "dist/index.js",
@@ -31,6 +31,6 @@
     "tsup": "^8.0.0"
   },
   "peerDependencies": {
-    "@uicp/core": "^0.4.0"
+    "@nature-labs/uicp-core": "^0.4.1"
   }
 }

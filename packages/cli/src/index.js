@@ -21,8 +21,8 @@ const dir = 'src/components';
 if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
 const templates = {
-  vanilla: `import { createDrawer } from '@uicp/core';
-import { gesturePlugin } from '@uicp/plugin-gesture';
+  vanilla: `import { createDrawer } from '@nature-labs/uicp-core';
+import { gesturePlugin } from '@nature-labs/uicp-plugin-gesture';
 
 export function DrawerDemo() {
   const drawer = createDrawer()
@@ -48,7 +48,7 @@ export function DrawerDemo() {
   };
 }`,
   
-  react: `import { useDrawer } from '@uicp/adapter-react';
+  react: `import { useDrawer } from '@nature-labs/uicp-adapter-react';
 
 export function DrawerDemo() {
   const { drawer, triggerRef, contentRef } = useDrawer();
@@ -69,7 +69,7 @@ export function DrawerDemo() {
 }`,
 
   svelte: `<script>
-  import { createDrawerStore } from '@uicp/adapter-svelte';
+  import { createDrawerStore } from '@nature-labs/uicp-adapter-svelte';
   
   const drawer = createDrawerStore();
   let triggerEl, contentEl;
@@ -92,4 +92,4 @@ const filepath = join(dir, filename);
 
 writeFileSync(filepath, templates[framework]);
 console.log(`✓ Created ${filepath}`);
-console.log(`Install: npm i @uicp/core @uicp/adapter-${framework === 'vanilla' ? 'vanilla' : framework}`);
+console.log(`Install: npm i @nature-labs/uicp-core @nature-labs/uicp-adapter-${framework === 'vanilla' ? 'vanilla' : framework}`);

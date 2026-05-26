@@ -1,6 +1,6 @@
 {
-  "name": "@uicp/monorepo",
-  "version": "0.4.0",
+  "name": "@nature-labs/uicp-monorepo",
+  "version": "0.4.1",
   "private": true,
   "description": "Universal UI Protocol - Lean, cross-framework UI primitives",
   "type": "module",
@@ -45,27 +45,27 @@
     {
       "path": "packages/core/dist/index.js",
       "limit": "5 KB",
-      "name": "@uicp/core"
+      "name": "@nature-labs/uicp-core"
     },
     {
       "path": "packages/adapters/vanilla/dist/index.js",
       "limit": "4 KB",
-      "name": "@uicp/adapter-vanilla"
+      "name": "@nature-labs/uicp-adapter-vanilla"
     },
     {
       "path": "packages/adapters/svelte/dist/index.js",
       "limit": "16 KB",
-      "name": "@uicp/adapter-svelte"
+      "name": "@nature-labs/uicp-adapter-svelte"
     },
     {
       "path": "packages/plugins/gesture/dist/index.js",
       "limit": "2 KB",
-      "name": "@uicp/plugin-gesture"
+      "name": "@nature-labs/uicp-plugin-gesture"
     },
     {
       "path": "packages/plugins/snap/dist/index.js",
       "limit": "1.5 KB",
-      "name": "@uicp/plugin-snap"
+      "name": "@nature-labs/uicp-plugin-snap"
     }
   ],
   "license": "MIT",

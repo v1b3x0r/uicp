@@ -45,12 +45,12 @@ Backdrop (provide via `<div data-backdrop-for="drawer-id">`):
 
 ## Package surface (npm)
 
-- `@uicp/core` — primitives + state machine
-- `@uicp/adapter-vanilla` — vanilla JS bindings
-- `@uicp/adapter-svelte` — Svelte store + action
-- `@uicp/plugin-gesture` — touch swipe-to-close
-- `@uicp/plugin-snap` — snap points
-- `@uicp/plugin-direction` — RTL/LTR
+- `@nature-labs/uicp-core` — primitives + state machine
+- `@nature-labs/uicp-adapter-vanilla` — vanilla JS bindings
+- `@nature-labs/uicp-adapter-svelte` — Svelte store + action
+- `@nature-labs/uicp-plugin-gesture` — touch swipe-to-close
+- `@nature-labs/uicp-plugin-snap` — snap points
+- `@nature-labs/uicp-plugin-direction` — RTL/LTR
 
 Not yet shipped (don't reference these as if they exist):
 - React / Vue / Solid / Web Components adapters

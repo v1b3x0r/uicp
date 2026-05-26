@@ -6,7 +6,7 @@
 
 Philosophy: `UI = State + Transitions + Interactions`. The adapter binds state to DOM signals (data-attrs, classes, ARIA); the user owns all CSS and presentation.
 
-## Current Status (v0.4.0)
+## Current Status (v0.4.1)
 
 **Working end-to-end:**
 - Core primitives (drawer, modal, tooltip, popover, menu) — state machine + event emitter
@@ -24,18 +24,18 @@ Philosophy: `UI = State + Transitions + Interactions`. The adapter binds state t
 ## Architecture
 
 ```
-@uicp/core
+@nature-labs/uicp-core
   ├─ UIPrimitive (base class — reactive state, event emitter, plugin system)
   ├─ primitives/ (drawer, modal, tooltip, popover, menu)
   └─ utils/ (focus-trap, scroll-lock, events)
 
-@uicp/adapter-vanilla
+@nature-labs/uicp-adapter-vanilla
   └─ State binder — toggles classes/data-attrs/aria, no inline styles
 
-@uicp/adapter-svelte
+@nature-labs/uicp-adapter-svelte
   └─ Store binding + action
 
-@uicp/plugin-* (gesture, snap, direction)
+@nature-labs/uicp-plugin-* (gesture, snap, direction)
 ```
 
 ### State shape
@@ -78,21 +78,21 @@ Backdrop element (provided by user with `[data-backdrop-for="<drawer-id>"]`):
 
 ```
 packages/
-├─ core/                  @uicp/core
+├─ core/                  @nature-labs/uicp-core
 ├─ adapters/
-│  ├─ vanilla/            @uicp/adapter-vanilla
-│  └─ svelte/             @uicp/adapter-svelte
+│  ├─ vanilla/            @nature-labs/uicp-adapter-vanilla
+│  └─ svelte/             @nature-labs/uicp-adapter-svelte
 └─ plugins/
-   ├─ gesture/            @uicp/plugin-gesture
-   ├─ snap/               @uicp/plugin-snap
-   ├─ direction/          @uicp/plugin-direction
-   ├─ animate/            @uicp/plugin-animate  (WIP, not in root build script yet)
-   └─ position/           @uicp/plugin-position (WIP)
+   ├─ gesture/            @nature-labs/uicp-plugin-gesture
+   ├─ snap/               @nature-labs/uicp-plugin-snap
+   ├─ direction/          @nature-labs/uicp-plugin-direction
+   ├─ animate/            @nature-labs/uicp-plugin-animate  (WIP, not in root build script yet)
+   └─ position/           @nature-labs/uicp-plugin-position (WIP)
 ```
 
 ## Bundle targets
 
-- `@uicp/core`: <5 KB brotlied (currently 4.35 KB)
+- `@nature-labs/uicp-core`: <5 KB brotlied (currently 4.35 KB)
 - adapters: <4 KB brotlied each
 - individual plugins: <2 KB brotlied each
 - Typical "drawer + gesture" setup: ~8.9 KB brotlied

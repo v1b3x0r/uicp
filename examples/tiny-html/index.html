@@ -8,8 +8,8 @@
   <script type="importmap">
   {
     "imports": {
-      "@uicp/core": "/packages/core/dist/index.js",
-      "@uicp/adapter-vanilla": "/packages/adapters/vanilla/dist/index.js"
+      "@nature-labs/uicp-core": "/packages/core/dist/index.js",
+      "@nature-labs/uicp-adapter-vanilla": "/packages/adapters/vanilla/dist/index.js"
     }
   }
   </script>
@@ -136,7 +136,7 @@
   <div data-backdrop-for="left-nav" class="backdrop"></div>
 
   <script type="module">
-    import { drawerWithGestures } from '@uicp/adapter-vanilla';
+    import { drawerWithGestures } from '@nature-labs/uicp-adapter-vanilla';
 
     const sheet = drawerWithGestures('#sheet', { position: 'bottom', size: '70vh' });
     const right = drawerWithGestures('#right-drawer', { position: 'right', size: 340 });

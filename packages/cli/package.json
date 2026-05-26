@@ -1,6 +1,6 @@
 {
-  "name": "@uicp/cli",
-  "version": "0.4.0",
+  "name": "@nature-labs/uicp-cli",
+  "version": "0.4.1",
   "private": true,
   "description": "CLI tool for Universal UI Protocol (not yet ready for publish)",
   "type": "module",

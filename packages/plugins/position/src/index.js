@@ -1,5 +1,5 @@
 /**
- * @uicp/plugin-position - Universal Positioning Plugin
+ * @nature-labs/uicp-plugin-position - Universal Positioning Plugin
  * Smart positioning for all UI primitives with auto-placement
  */
 

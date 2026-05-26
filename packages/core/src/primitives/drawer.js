@@ -1,5 +1,5 @@
 /**
- * @uicp/core - Drawer Primitive (Protocol v0.x)
+ * @nature-labs/uicp-core - Drawer Primitive (Protocol v0.x)
  * Sliding panel UI implementing Universal UI Protocol
  */
 

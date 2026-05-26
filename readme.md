@@ -2,8 +2,8 @@
 
 > Headless drawer / sheet / nav primitives for vanilla JS and Svelte. State + transitions + gestures only — you own all the CSS.
 
-[![npm](https://img.shields.io/npm/v/@uicp/core?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@uicp/core)
-[![License](https://img.shields.io/npm/l/@uicp/core?style=flat&colorA=000000&colorB=000000)](https://github.com/v1b3x0r/uicp/blob/main/LICENSE)
+[![npm](https://img.shields.io/npm/v/@nature-labs/uicp-core?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@nature-labs/uicp-core)
+[![License](https://img.shields.io/npm/l/@nature-labs/uicp-core?style=flat&colorA=000000&colorB=000000)](https://github.com/v1b3x0r/uicp/blob/main/LICENSE)
 
 ## Why uicp
 
@@ -18,9 +18,9 @@ uicp is for that niche:
 ## Install
 
 ```bash
-npm install @uicp/core @uicp/adapter-vanilla
+npm install @nature-labs/uicp-core @nature-labs/uicp-adapter-vanilla
 # optional:
-npm install @uicp/plugin-gesture
+npm install @nature-labs/uicp-plugin-gesture
 ```
 
 ## Vanilla JS
@@ -55,7 +55,7 @@ npm install @uicp/plugin-gesture
 </style>
 
 <script type="module">
-  import { drawerWithGestures } from '@uicp/adapter-vanilla';
+  import { drawerWithGestures } from '@nature-labs/uicp-adapter-vanilla';
 
   const sheet = drawerWithGestures('#sheet', { position: 'bottom' });
   document.getElementById('open').onclick = () => sheet.open();
@@ -87,7 +87,7 @@ See `examples/tiny-html/` (edge-to-edge) and `examples/homelog-gatepass/` (float
 
 ```svelte
 <script>
-  import { createDrawerStore } from '@uicp/adapter-svelte';
+  import { createDrawerStore } from '@nature-labs/uicp-adapter-svelte';
   const drawer = createDrawerStore({ position: 'bottom' });
 </script>
 
@@ -137,12 +137,12 @@ drawer.destroy();
 ## Scope (honest)
 
 **Shipped & tested:**
-- `@uicp/core` — drawer, modal, tooltip, popover, menu primitives (state machines)
-- `@uicp/adapter-vanilla` — drawer + gesture for vanilla JS
-- `@uicp/adapter-svelte` — drawer + gesture for Svelte
-- `@uicp/plugin-gesture` — touch drag-to-close
-- `@uicp/plugin-snap` — snap points
-- `@uicp/plugin-direction` — RTL/LTR
+- `@nature-labs/uicp-core` — drawer, modal, tooltip, popover, menu primitives (state machines)
+- `@nature-labs/uicp-adapter-vanilla` — drawer + gesture for vanilla JS
+- `@nature-labs/uicp-adapter-svelte` — drawer + gesture for Svelte
+- `@nature-labs/uicp-plugin-gesture` — touch drag-to-close
+- `@nature-labs/uicp-plugin-snap` — snap points
+- `@nature-labs/uicp-plugin-direction` — RTL/LTR
 
 **Not yet:**
 - React adapter (planned, not shipped)
@@ -156,19 +156,19 @@ Measured against the vanilla adapter built dist (raw, brotlied):
 
 | Package | Brotlied | Raw |
 |---|---|---|
-| `@uicp/core` | 4.35 KB | 49 KB |
-| `@uicp/adapter-vanilla` | ~3.4 KB | 8.6 KB |
-| `@uicp/plugin-gesture` | 1.13 KB | 7.5 KB |
-| `@uicp/plugin-snap` | 982 B | 3.5 KB |
+| `@nature-labs/uicp-core` | 4.35 KB | 49 KB |
+| `@nature-labs/uicp-adapter-vanilla` | ~3.4 KB | 8.6 KB |
+| `@nature-labs/uicp-plugin-gesture` | 1.13 KB | 7.5 KB |
+| `@nature-labs/uicp-plugin-snap` | 982 B | 3.5 KB |
 
 Total typical setup (core + vanilla + gesture): **~8.9 KB brotlied**.
 
 ## Status
 
-v0.4.0 — first real npm release. Architecture is stable, drawer end-to-end works in vanilla + svelte. Modal/popover/tooltip/menu primitives exist in core but aren't wired in the vanilla adapter yet. Treat that as the "not for production" boundary until they ship dedicated adapter wrappers.
+v0.4.1 — first real npm release. Architecture is stable, drawer end-to-end works in vanilla + svelte. Modal/popover/tooltip/menu primitives exist in core but aren't wired in the vanilla adapter yet. Treat that as the "not for production" boundary until they ship dedicated adapter wrappers.
 
 Breaking changes between v0.3.x and v0.4.0:
-- Package scope renamed `@uip/*` → `@uicp/*`
+- Package scope renamed `@uip/*` → `@nature-labs/uicp-*`
 - Adapter no longer auto-injects position styles. Drawers need CSS for position/transform/transition (one block per position direction, see usage above).
 - Backdrop class changed: `.show` → `.uip-backdrop-open`
 - Drawer class changed: `.open` / `.closed` → `.uip-open` / `.uip-closed`

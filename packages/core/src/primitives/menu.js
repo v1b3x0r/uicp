@@ -1,5 +1,5 @@
 /**
- * @uicp/core - Menu Primitive (Protocol v0.x)
+ * @nature-labs/uicp-core - Menu Primitive (Protocol v0.x)
  * Context menu with keyboard navigation implementing Universal UI Protocol
  */
 

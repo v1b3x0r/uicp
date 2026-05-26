@@ -1,5 +1,5 @@
 /**
- * @uicp/core - Tooltip Primitive (Protocol v0.x)
+ * @nature-labs/uicp-core - Tooltip Primitive (Protocol v0.x)
  * Contextual information implementing Universal UI Protocol
  */
 

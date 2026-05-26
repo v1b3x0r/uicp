@@ -1,5 +1,5 @@
 /**
- * @uicp/plugin-gesture - Universal Touch & Mouse Gestures
+ * @nature-labs/uicp-plugin-gesture - Universal Touch & Mouse Gestures
  * Smooth drag interactions for all UI primitives
  */
 

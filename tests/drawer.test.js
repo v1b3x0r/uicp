@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createDrawer } from '@uicp/core';
+import { createDrawer } from '@nature-labs/uicp-core';
 
 describe('Drawer (v0.3 API)', () => {
   let drawer;

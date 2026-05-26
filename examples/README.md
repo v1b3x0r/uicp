@@ -31,12 +31,12 @@ If you're picking up uicp today, start with `tiny-html/` for vanilla and the Sve
 
 ## Pattern: how a uicp demo is wired
 
-1. **Import map** in `<head>` resolves `@uicp/*` bare specifiers to built dist files:
+1. **Import map** in `<head>` resolves `@nature-labs/uicp-*` bare specifiers to built dist files:
    ```html
    <script type="importmap">
    {"imports":{
-     "@uicp/core": "/packages/core/dist/index.js",
-     "@uicp/adapter-vanilla": "/packages/adapters/vanilla/dist/index.js"
+     "@nature-labs/uicp-core": "/packages/core/dist/index.js",
+     "@nature-labs/uicp-adapter-vanilla": "/packages/adapters/vanilla/dist/index.js"
    }}
    </script>
    ```
@@ -61,7 +61,7 @@ If you're picking up uicp today, start with `tiny-html/` for vanilla and the Sve
 
 4. **Script** wires up the adapter:
    ```js
-   import { drawerWithGestures } from '@uicp/adapter-vanilla';
+   import { drawerWithGestures } from '@nature-labs/uicp-adapter-vanilla';
    const sheet = drawerWithGestures('#my-drawer', { position: 'bottom' });
    document.querySelector('#open-btn').onclick = () => sheet.open();
    ```

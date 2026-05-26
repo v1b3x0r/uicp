@@ -1,6 +1,6 @@
 {
-  "name": "@uicp/plugin-direction",
-  "version": "0.4.0",
+  "name": "@nature-labs/uicp-plugin-direction",
+  "version": "0.4.1",
   "description": "Direction positioning plugin for Universal UI Protocol",
   "type": "module",
   "main": "dist/index.js",
@@ -26,6 +26,6 @@
   "author": "v1b3x0r <natthawut.plbc@gmail.com>",
   "license": "MIT",
   "peerDependencies": {
-    "@uicp/core": "^0.4.0"
+    "@nature-labs/uicp-core": "^0.4.1"
   }
 }

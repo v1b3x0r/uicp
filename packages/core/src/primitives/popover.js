@@ -1,5 +1,5 @@
 /**
- * @uicp/core - Popover Primitive (Protocol v0.x)
+ * @nature-labs/uicp-core - Popover Primitive (Protocol v0.x)
  * Click-triggered floating content implementing Universal UI Protocol
  */
 

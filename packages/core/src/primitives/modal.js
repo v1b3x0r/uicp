@@ -1,5 +1,5 @@
 /**
- * @uicp/core - Modal Primitive (Protocol v0.x)
+ * @nature-labs/uicp-core - Modal Primitive (Protocol v0.x)
  * Overlay dialog implementing Universal UI Protocol
  */
 

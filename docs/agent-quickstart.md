@@ -4,7 +4,7 @@
 
 ## What this is
 
-A small headless UI library (~4K LOC) for vanilla JS / Svelte drawers. Published as `@uicp/core`, `@uicp/adapter-vanilla`, etc. on npm.
+A small headless UI library (~4K LOC) for vanilla JS / Svelte drawers. Published as `@nature-labs/uicp-core`, `@nature-labs/uicp-adapter-vanilla`, etc. on npm.
 
 **Mental model:** `UI = State + Transitions + Interactions`. The core is a state machine. The adapter binds state to DOM. The user owns all CSS.
 
@@ -36,12 +36,12 @@ A small headless UI library (~4K LOC) for vanilla JS / Svelte drawers. Published
 ## What's published vs not
 
 **Published to npm (v0.4.0):**
-- `@uicp/core`, `@uicp/adapter-vanilla`, `@uicp/adapter-svelte`, `@uicp/plugin-gesture`, `@uicp/plugin-snap`, `@uicp/plugin-direction`
+- `@nature-labs/uicp-core`, `@nature-labs/uicp-adapter-vanilla`, `@nature-labs/uicp-adapter-svelte`, `@nature-labs/uicp-plugin-gesture`, `@nature-labs/uicp-plugin-snap`, `@nature-labs/uicp-plugin-direction`
 
 **NOT published (marked `"private": true`):**
-- `@uicp/cli` — internal scaffolding tool
-- `@uicp/plugin-animate` — WIP
-- `@uicp/plugin-position` — WIP
+- `@nature-labs/uicp-cli` — internal scaffolding tool
+- `@nature-labs/uicp-plugin-animate` — WIP
+- `@nature-labs/uicp-plugin-position` — WIP
 
 ## The one weird trick
 

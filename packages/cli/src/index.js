@@ -21,8 +21,8 @@ const dir = 'src/components';
 if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
 const templates = {
-  vanilla: `import { createDrawer } from '@uip/core';
-import { gesturePlugin } from '@uip/plugin-gesture';
+  vanilla: `import { createDrawer } from '@uicp/core';
+import { gesturePlugin } from '@uicp/plugin-gesture';
 
 export function DrawerDemo() {
   const drawer = createDrawer()
@@ -48,7 +48,7 @@ export function DrawerDemo() {
   };
 }`,
   
-  react: `import { useDrawer } from '@uip/adapter-react';
+  react: `import { useDrawer } from '@uicp/adapter-react';
 
 export function DrawerDemo() {
   const { drawer, triggerRef, contentRef } = useDrawer();
@@ -69,7 +69,7 @@ export function DrawerDemo() {
 }`,
 
   svelte: `<script>
-  import { createDrawerStore } from '@uip/adapter-svelte';
+  import { createDrawerStore } from '@uicp/adapter-svelte';
   
   const drawer = createDrawerStore();
   let triggerEl, contentEl;
@@ -92,4 +92,4 @@ const filepath = join(dir, filename);
 
 writeFileSync(filepath, templates[framework]);
 console.log(`✓ Created ${filepath}`);
-console.log(`Install: npm i @uip/core @uip/adapter-${framework === 'vanilla' ? 'vanilla' : framework}`);
+console.log(`Install: npm i @uicp/core @uicp/adapter-${framework === 'vanilla' ? 'vanilla' : framework}`);

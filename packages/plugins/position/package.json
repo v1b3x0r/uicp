@@ -1,7 +1,8 @@
 {
-  "name": "@uip/plugin-position",
-  "version": "2.0.0",
-  "description": "Universal positioning plugin for UI primitives",
+  "name": "@uicp/plugin-position",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Universal positioning plugin for UI primitives (WIP, not in v0.4.0 release)",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -24,12 +25,12 @@
     "popover",
     "menu"
   ],
-  "author": "UI Protocol Team",
+  "author": "v1b3x0r <natthawut.plbc@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "tsup": "^8.0.0"
   },
   "peerDependencies": {
-    "@uip/core": "^2.0.0"
+    "@uicp/core": "^0.4.0"
   }
 }

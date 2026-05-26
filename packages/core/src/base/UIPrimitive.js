@@ -148,9 +148,17 @@ export class UIPrimitive {
    */
   set(path, value) {
     const keys = path.split('.');
+
+    // Single-key path: proxy's set trap fires and emits change.
+    if (keys.length === 1) {
+      this.state[path] = value;
+      return;
+    }
+
+    // Nested path: navigate to parent and assign on raw object.
+    // The outer proxy doesn't fire for inner mutations, so emit manually.
+    const previous = { ...this.state };
     let current = this.state;
-    
-    // Navigate to parent object
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (!(key in current)) {
@@ -158,9 +166,18 @@ export class UIPrimitive {
       }
       current = current[key];
     }
-    
-    // Set final value
-    current[keys[keys.length - 1]] = value;
+    const finalKey = keys[keys.length - 1];
+    const oldValue = current[finalKey];
+    if (oldValue === value) return;
+    current[finalKey] = value;
+
+    this._handleStateChange({
+      state: { ...this.state },
+      previous,
+      path,
+      value,
+      oldValue
+    });
   }
   
   /**

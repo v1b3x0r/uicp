@@ -1,5 +1,5 @@
 /**
- * @uip/core - Drawer Primitive (Protocol v0.x)
+ * @uicp/core - Drawer Primitive (Protocol v0.x)
  * Sliding panel UI implementing Universal UI Protocol
  */
 

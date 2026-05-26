@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>uicp — tiny site, modern UX</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "@uicp/core": "/packages/core/dist/index.js",
+      "@uicp/adapter-vanilla": "/packages/adapters/vanilla/dist/index.js"
+    }
+  }
+  </script>
+  <style>
+    /* uicp is headless — you own all CSS. Position, transform, transition: all yours. */
+
+    /* Base drawer: positioned + transitioned. State hook = [data-uip-open]. */
+    [data-uip-type="drawer"] {
+      position: fixed;
+      z-index: 50;
+      transition: transform 320ms cubic-bezier(.32, .72, 0, 1);
+      will-change: transform;
+    }
+
+    /* Bottom sheet — edge-to-edge bottom */
+    [data-uip-type="drawer"][data-uip-position="bottom"] {
+      left: 0; right: 0; bottom: 0;
+      transform: translateY(100%);
+    }
+    [data-uip-type="drawer"][data-uip-position="bottom"][data-uip-open="true"] {
+      transform: translateY(0);
+    }
+
+    /* Right drawer */
+    [data-uip-type="drawer"][data-uip-position="right"] {
+      top: 0; right: 0; bottom: 0;
+      transform: translateX(100%);
+    }
+    [data-uip-type="drawer"][data-uip-position="right"][data-uip-open="true"] {
+      transform: translateX(0);
+    }
+
+    /* Left drawer */
+    [data-uip-type="drawer"][data-uip-position="left"] {
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+    }
+    [data-uip-type="drawer"][data-uip-position="left"][data-uip-open="true"] {
+      transform: translateX(0);
+    }
+
+    /* Backdrop — state hook = .uip-backdrop-open */
+    .backdrop {
+      position: fixed; inset: 0;
+      background: rgb(0 0 0 / 0.45);
+      backdrop-filter: blur(4px);
+      opacity: 0; visibility: hidden;
+      transition: opacity 320ms ease, visibility 320ms ease;
+      z-index: 40;
+    }
+    .backdrop.uip-backdrop-open { opacity: 1; visibility: visible; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen text-slate-900">
+
+  <main class="max-w-2xl mx-auto px-6 py-16">
+    <header class="mb-12">
+      <p class="text-xs font-mono text-slate-500 mb-2">uicp pilot · vanilla HTML · zero framework</p>
+      <h1 class="text-4xl font-bold tracking-tight mb-3">Tiny site, modern UX.</h1>
+      <p class="text-slate-600 text-lg leading-relaxed">
+        Drop in a script, get drawer / sheet / side-nav with native gesture feel.
+        No React, no Vue, no Svelte. Just a few KB of headless protocol.
+      </p>
+    </header>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+      <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Try it</h2>
+      <div class="flex flex-wrap gap-3">
+        <button id="btn-sheet" class="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-700 active:scale-95 transition">
+          📋 Bottom sheet
+        </button>
+        <button id="btn-right" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 active:scale-95 transition">
+          → Right drawer
+        </button>
+        <button id="btn-left" class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 active:scale-95 transition">
+          ← Left nav
+        </button>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Measured</h2>
+      <dl id="measure" class="space-y-1 text-sm font-mono">
+        <div class="text-slate-400">Measuring…</div>
+      </dl>
+    </section>
+  </main>
+
+  <div id="sheet" class="bg-white rounded-t-3xl shadow-2xl" style="max-height: 70vh; padding: 24px;">
+    <div class="mx-auto mb-4 h-1.5 w-12 rounded-full bg-slate-300"></div>
+    <h3 class="text-xl font-semibold mb-2">Bottom sheet</h3>
+    <p class="text-slate-600 mb-4">Drag down to close. Tap backdrop. Or press Escape.</p>
+    <ul class="space-y-2 text-sm">
+      <li class="flex items-center gap-2"><span class="text-emerald-600">✓</span> Native swipe gesture</li>
+      <li class="flex items-center gap-2"><span class="text-emerald-600">✓</span> Focus trap + Escape</li>
+      <li class="flex items-center gap-2"><span class="text-emerald-600">✓</span> Backdrop tap to close</li>
+      <li class="flex items-center gap-2"><span class="text-emerald-600">✓</span> Scroll lock on body</li>
+    </ul>
+    <button data-close-sheet class="mt-6 w-full py-3 bg-slate-100 hover:bg-slate-200 rounded-xl font-medium transition">Close</button>
+  </div>
+  <div data-backdrop-for="sheet" class="backdrop"></div>
+
+  <div id="right-drawer" class="bg-white shadow-2xl" style="width: 340px; padding: 24px;">
+    <h3 class="text-xl font-semibold mb-4">Notifications</h3>
+    <div class="space-y-3">
+      <div class="p-3 bg-slate-50 rounded-lg text-sm">📦 Package delivered · 2h ago</div>
+      <div class="p-3 bg-slate-50 rounded-lg text-sm">💬 New message from Jin · 4h ago</div>
+      <div class="p-3 bg-slate-50 rounded-lg text-sm">🔔 Daily summary ready · 8h ago</div>
+    </div>
+    <button data-close-right class="mt-6 w-full py-2.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm transition">Close</button>
+  </div>
+  <div data-backdrop-for="right-drawer" class="backdrop"></div>
+
+  <div id="left-nav" class="bg-slate-900 text-white shadow-2xl" style="width: 280px; padding: 24px;">
+    <h3 class="text-lg font-semibold mb-6">Menu</h3>
+    <nav class="space-y-1 text-sm">
+      <a href="#" class="block px-3 py-2 rounded-lg hover:bg-slate-800">🏠 Home</a>
+      <a href="#" class="block px-3 py-2 rounded-lg hover:bg-slate-800">📊 Dashboard</a>
+      <a href="#" class="block px-3 py-2 rounded-lg hover:bg-slate-800">⚙️ Settings</a>
+      <a href="#" class="block px-3 py-2 rounded-lg hover:bg-slate-800">👤 Profile</a>
+    </nav>
+    <button data-close-left class="mt-6 w-full py-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition">Close</button>
+  </div>
+  <div data-backdrop-for="left-nav" class="backdrop"></div>
+
+  <script type="module">
+    import { drawerWithGestures } from '@uicp/adapter-vanilla';
+
+    const sheet = drawerWithGestures('#sheet', { position: 'bottom', size: '70vh' });
+    const right = drawerWithGestures('#right-drawer', { position: 'right', size: 340 });
+    const left  = drawerWithGestures('#left-nav', { position: 'left', size: 280 });
+
+    document.getElementById('btn-sheet').onclick = () => sheet.open();
+    document.getElementById('btn-right').onclick = () => right.open();
+    document.getElementById('btn-left').onclick  = () => left.open();
+
+    document.querySelector('[data-close-sheet]').onclick = () => sheet.close();
+    document.querySelector('[data-close-right]').onclick = () => right.close();
+    document.querySelector('[data-close-left]').onclick  = () => left.close();
+
+    document.querySelectorAll('.backdrop').forEach(el => {
+      el.onclick = () => {
+        const id = el.getAttribute('data-backdrop-for');
+        if (id === 'sheet') sheet.close();
+        else if (id === 'right-drawer') right.close();
+        else if (id === 'left-nav') left.close();
+      };
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { sheet.close(); right.close(); left.close(); }
+    });
+
+    window.addEventListener('load', () => {
+      const measure = document.getElementById('measure');
+      measure.replaceChildren();
+      const entries = performance.getEntriesByType('resource');
+      const js = entries.filter(e => e.name.includes('/packages/') && e.name.endsWith('.js'));
+      let total = 0;
+      for (const e of js) {
+        const size = e.encodedBodySize || e.transferSize || 0;
+        total += size;
+        const row = document.createElement('div');
+        row.className = 'flex justify-between';
+        const left = document.createElement('span');
+        left.className = 'text-slate-500';
+        left.textContent = e.name.split('/packages/')[1];
+        const right = document.createElement('span');
+        right.className = 'text-slate-900';
+        right.textContent = `${(size / 1024).toFixed(2)} KB`;
+        row.append(left, right);
+        measure.appendChild(row);
+      }
+      const totalRow = document.createElement('div');
+      totalRow.className = 'flex justify-between border-t border-slate-200 pt-1 mt-1 font-semibold';
+      const tLabel = document.createElement('span');
+      tLabel.textContent = 'uicp total JS';
+      const tValue = document.createElement('span');
+      tValue.textContent = `${(total / 1024).toFixed(2)} KB`;
+      totalRow.append(tLabel, tValue);
+      measure.appendChild(totalRow);
+      const note = document.createElement('div');
+      note.className = 'text-xs text-slate-400 mt-2';
+      note.textContent = '(raw, not gzipped · Tailwind CDN excluded)';
+      measure.appendChild(note);
+    });
+  </script>
+</body>
+</html>

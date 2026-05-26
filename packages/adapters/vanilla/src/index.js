@@ -1,33 +1,13 @@
 /**
- * @uip/adapter-vanilla - Hybrid Universal UI Protocol
- * Zero-config, progressive enhancement, plugin-ready
+ * @uicp/adapter-vanilla — headless drawer adapter for vanilla JS
+ *
+ * Modal, popover, tooltip, and menu primitives exist in @uicp/core but are
+ * not yet wrapped here. Use the core primitives directly until real adapter
+ * wrappers ship (planned for v0.4.x).
  */
 
-// Primary Hybrid API exports
-export { 
+export {
   drawer,
-  drawerWithGestures, 
-  drawerWithPlugins,
-  modal,
-  popover
+  drawerWithGestures,
+  drawerWithPlugins
 } from './hybrid.js';
-
-// Minimal backward compatibility for legacy code
-import { drawer } from './hybrid.js';
-
-/**
- * Legacy createUniversalDrawer compatibility wrapper
- * @deprecated Use drawer() instead
- */
-export const createUniversalDrawer = (options = {}) => {
-  const elementSelector = options.element || '#drawer';
-  return drawer(elementSelector, options);
-};
-
-/**
- * Legacy createDrawer compatibility wrapper  
- * @deprecated Use drawer() instead
- */
-export const createDrawer = (options = {}) => {
-  return createUniversalDrawer(options);
-};

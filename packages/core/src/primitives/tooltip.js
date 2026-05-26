@@ -1,5 +1,5 @@
 /**
- * @uip/core - Tooltip Primitive (Protocol v0.x)
+ * @uicp/core - Tooltip Primitive (Protocol v0.x)
  * Contextual information implementing Universal UI Protocol
  */
 

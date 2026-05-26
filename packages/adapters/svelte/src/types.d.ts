@@ -10,7 +10,7 @@ import type {
   PopoverInstance, PopoverOptions,
   MenuInstance, MenuOptions,
   BaseState
-} from '@uip/core';
+} from '@uicp/core';
 
 export interface PrimitiveStore<T extends BaseState = BaseState> extends Writable<T> {
   open(): void;
@@ -55,4 +55,4 @@ export {
   createTooltip,
   createPopover,
   createMenu
-} from '@uip/core';
+} from '@uicp/core';

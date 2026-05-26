@@ -1,5 +1,5 @@
 /**
- * @uip/plugin-position - Universal Positioning Plugin
+ * @uicp/plugin-position - Universal Positioning Plugin
  * Smart positioning for all UI primitives with auto-placement
  */
 

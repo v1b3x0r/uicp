@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>HomeLog — GatePass · uicp scenario</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "@uicp/core": "/packages/core/dist/index.js",
+      "@uicp/adapter-vanilla": "/packages/adapters/vanilla/dist/index.js"
+    }
+  }
+  </script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Inter", "Noto Sans Thai", sans-serif; }
+    /*
+      uicp is headless. You own all CSS.
+      Modern iOS-17-style "floating sheet" — inset from all edges + rounded top + safe-area aware.
+      Switching to edge-to-edge is just a CSS edit, no API changes.
+    */
+    [data-uip-type="drawer"][data-uip-position="bottom"] {
+      position: fixed;
+      left: 8px; right: 8px;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+      max-width: 404px; /* matches phone-frame width minus margins */
+      margin-inline: auto;
+      transform: translateY(calc(100% + 16px));
+      transition: transform 380ms cubic-bezier(.32, .72, 0, 1);
+      will-change: transform;
+      z-index: 50;
+    }
+    [data-uip-type="drawer"][data-uip-position="bottom"][data-uip-open="true"] {
+      transform: translateY(0);
+    }
+    .backdrop {
+      position: fixed; inset: 0;
+      background: rgb(15 23 42 / 0.5);
+      backdrop-filter: blur(8px);
+      opacity: 0; visibility: hidden;
+      transition: opacity 320ms ease, visibility 320ms ease;
+      z-index: 40;
+    }
+    .backdrop.uip-backdrop-open { opacity: 1; visibility: visible; }
+
+    /* Phone-frame look on big viewport */
+    .phone {
+      width: 100%; max-width: 420px; min-height: 100vh;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    @media (min-width: 640px) {
+      body { background: #0f172a; padding: 24px 0; }
+      .phone { min-height: 844px; max-height: 90vh; border-radius: 36px; box-shadow: 0 20px 80px rgba(0,0,0,.4); }
+    }
+
+    /* Pass card sheen */
+    .card-active {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      box-shadow: 0 12px 32px -8px rgb(15 23 42 / 0.35);
+    }
+    .card-active::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(circle at top right, rgb(56 189 248 / 0.15), transparent 50%);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+    .card-stash {
+      background: white;
+      box-shadow: 0 2px 8px -2px rgb(15 23 42 / 0.08);
+    }
+    .gate-cta {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 8px 24px -4px rgb(16 185 129 / 0.4);
+    }
+    .gate-cta:active { transform: scale(.98); }
+    .gate-cta.opened {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      box-shadow: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-100">
+
+<div class="phone flex flex-col">
+
+  <!-- Header -->
+  <header class="px-6 pt-12 pb-4">
+    <p class="text-xs font-mono text-slate-500 uppercase tracking-wider">บ้านเลขที่ 88 · Sukhumvit</p>
+    <h1 class="text-lg font-semibold text-slate-900 mt-1">สวัสดี อพิ 👋</h1>
+  </header>
+
+  <!-- Active Pass section -->
+  <section class="px-6 flex-1 flex flex-col">
+    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Pass ที่ใช้อยู่</p>
+
+    <!-- Active pass card -->
+    <div id="active-card" class="card-active relative rounded-3xl p-6 text-white mb-6">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <p class="text-[10px] font-mono uppercase tracking-widest text-sky-300/80">One-Time GatePass</p>
+          <p id="active-name" class="text-2xl font-semibold mt-1">คุณ Ali — Delivery</p>
+        </div>
+        <div class="text-3xl">🛵</div>
+      </div>
+      <div class="flex items-end justify-between">
+        <div>
+          <p class="text-[10px] text-slate-300 uppercase tracking-wider">หมดอายุใน</p>
+          <p id="active-expiry" class="text-base font-medium">1 ชม. 47 นาที</p>
+        </div>
+        <div class="text-right">
+          <p class="text-[10px] text-slate-300 uppercase tracking-wider">เหลือ</p>
+          <p id="active-uses" class="text-base font-medium">1 ครั้ง</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gate open CTA -->
+    <button id="gate-cta" class="gate-cta rounded-2xl py-6 text-white font-semibold text-lg transition flex items-center justify-center gap-3">
+      <span class="text-2xl">🚪</span>
+      <span id="cta-label">เปิดประตูบ้าน</span>
+    </button>
+
+    <p id="gate-status" class="text-center text-xs text-slate-500 mt-3 min-h-[16px]"></p>
+
+    <div class="flex-1"></div>
+
+    <!-- Bottom button: switch pass -->
+    <button id="btn-switch" class="mx-auto mb-6 mt-4 flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-full text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 active:scale-95 transition">
+      <span>บัตรอื่น</span>
+      <span id="switch-count" class="px-2 py-0.5 rounded-full bg-slate-100 text-xs">3</span>
+      <span class="text-slate-400">▼</span>
+    </button>
+  </section>
+</div>
+
+<!-- Bottom drawer: other passes (floating iOS-17 style, inset from edges) -->
+<div id="pass-drawer" class="bg-white rounded-3xl shadow-2xl" style="max-height: 75vh;">
+  <div class="px-6 pt-3 pb-2">
+    <div class="mx-auto h-1.5 w-12 rounded-full bg-slate-300"></div>
+  </div>
+  <div class="px-6 pb-6">
+    <h2 class="text-lg font-semibold text-slate-900 mb-1">เลือก Pass</h2>
+    <p class="text-sm text-slate-500 mb-5">แตะการ์ดเพื่อสลับเป็น Pass ที่ใช้อยู่</p>
+
+    <ul id="other-passes" class="space-y-3 overflow-y-auto" style="max-height: 50vh;">
+      <!-- populated by JS -->
+    </ul>
+
+    <button id="btn-close-drawer" class="mt-5 w-full py-3 bg-slate-100 hover:bg-slate-200 rounded-2xl text-sm font-medium text-slate-700 transition">ปิด</button>
+  </div>
+</div>
+<div data-backdrop-for="pass-drawer" class="backdrop"></div>
+
+<script type="module">
+  import { drawerWithGestures } from '@uicp/adapter-vanilla';
+
+  // Demo data
+  const passes = [
+    {
+      id: 'ali',
+      icon: '🛵',
+      type: 'One-Time GatePass',
+      name: 'คุณ Ali — Delivery',
+      expiry: '1 ชม. 47 นาที',
+      uses: '1 ครั้ง',
+      tone: 'one-time'
+    },
+    {
+      id: 'home',
+      icon: '🏠',
+      type: 'HomePass · เจ้าของ',
+      name: 'อพิ (คุณ)',
+      expiry: 'ไม่หมดอายุ',
+      uses: 'ไม่จำกัด',
+      tone: 'home'
+    },
+    {
+      id: 'cleaner',
+      icon: '🧹',
+      type: 'Weekly Pass',
+      name: 'พี่ส้ม — แม่บ้าน',
+      expiry: 'ทุกวันอังคาร',
+      uses: '4 ครั้งสัปดาห์',
+      tone: 'recurring'
+    },
+    {
+      id: 'delivery30',
+      icon: '📦',
+      type: '30-min Pass',
+      name: 'Grab — พัสดุ',
+      expiry: '28 นาที',
+      uses: '1 ครั้ง',
+      tone: 'one-time'
+    }
+  ];
+
+  let activeId = 'ali';
+
+  const drawer = drawerWithGestures('#pass-drawer', { position: 'bottom', size: '75vh' });
+
+  function renderActive() {
+    const p = passes.find(x => x.id === activeId);
+    document.getElementById('active-name').textContent = p.name;
+    document.getElementById('active-expiry').textContent = p.expiry;
+    document.getElementById('active-uses').textContent = p.uses;
+    document.querySelector('#active-card .text-3xl').textContent = p.icon;
+    document.querySelector('#active-card p.text-\\[10px\\].font-mono').textContent = p.type;
+    document.getElementById('cta-label').textContent = 'เปิดประตูบ้าน';
+    document.getElementById('gate-cta').classList.remove('opened');
+    document.getElementById('gate-status').textContent = '';
+    renderList();
+  }
+
+  function renderList() {
+    const list = document.getElementById('other-passes');
+    list.replaceChildren();
+    const others = passes.filter(p => p.id !== activeId);
+    document.getElementById('switch-count').textContent = String(others.length);
+    for (const p of others) {
+      const li = document.createElement('li');
+      li.className = 'card-stash rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition';
+      li.dataset.passId = p.id;
+
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-4';
+
+      const iconWrap = document.createElement('div');
+      iconWrap.className = 'text-3xl w-12 h-12 flex items-center justify-center bg-slate-50 rounded-xl';
+      iconWrap.textContent = p.icon;
+
+      const info = document.createElement('div');
+      info.className = 'flex-1 min-w-0';
+      const typeEl = document.createElement('p');
+      typeEl.className = 'text-[10px] font-mono text-slate-500 uppercase tracking-wider';
+      typeEl.textContent = p.type;
+      const nameEl = document.createElement('p');
+      nameEl.className = 'text-sm font-medium text-slate-900 truncate';
+      nameEl.textContent = p.name;
+      const meta = document.createElement('p');
+      meta.className = 'text-xs text-slate-500 mt-0.5';
+      meta.textContent = `${p.expiry} · ${p.uses}`;
+      info.append(typeEl, nameEl, meta);
+
+      const chev = document.createElement('div');
+      chev.className = 'text-slate-300';
+      chev.textContent = '›';
+
+      row.append(iconWrap, info, chev);
+      li.appendChild(row);
+
+      li.onclick = () => {
+        activeId = p.id;
+        renderActive();
+        drawer.close();
+      };
+
+      list.appendChild(li);
+    }
+  }
+
+  // Wire interactions
+  document.getElementById('btn-switch').onclick = () => drawer.open();
+  document.getElementById('btn-close-drawer').onclick = () => drawer.close();
+  document.querySelector('[data-backdrop-for="pass-drawer"]').onclick = () => drawer.close();
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') drawer.close(); });
+
+  document.getElementById('gate-cta').onclick = () => {
+    const cta = document.getElementById('gate-cta');
+    if (cta.classList.contains('opened')) return;
+    cta.classList.add('opened');
+    document.getElementById('cta-label').textContent = '✓ เปิดให้แล้ว';
+    document.getElementById('gate-status').textContent = 'บ้านได้รับสัญญาณแล้ว · พร้อมรับ';
+    setTimeout(() => {
+      cta.classList.remove('opened');
+      document.getElementById('cta-label').textContent = 'เปิดประตูบ้าน';
+      document.getElementById('gate-status').textContent = '';
+    }, 4000);
+  };
+
+  renderActive();
+</script>
+
+</body>
+</html>

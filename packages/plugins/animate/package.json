@@ -1,7 +1,8 @@
 {
-  "name": "@uip/plugin-animate",
-  "version": "0.3.0",
-  "description": "Universal UI Protocol - Animation Plugin",
+  "name": "@uicp/plugin-animate",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Universal UI Protocol - Animation Plugin (WIP, not in v0.4.0 release)",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -31,11 +32,11 @@
     "tsup": "^8.0.0"
   },
   "peerDependencies": {
-    "@uip/core": "^0.3.0"
+    "@uicp/core": "^0.4.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/universal-ui-protocol/uip",
+    "url": "https://github.com/v1b3x0r/uicp",
     "directory": "packages/plugins/animate"
   }
 }

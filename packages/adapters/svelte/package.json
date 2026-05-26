@@ -1,6 +1,6 @@
 {
-  "name": "@uip/adapter-svelte",
-  "version": "2.0.0",
+  "name": "@uicp/adapter-svelte",
+  "version": "0.4.0",
   "description": "Svelte adapter for Universal UI Protocol",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -27,7 +27,7 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@uip/core": "^2.0.0",
+    "@uicp/core": "^0.4.0",
     "svelte": ">=4.0.0"
   },
   "devDependencies": {
@@ -36,7 +36,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/uip",
+    "url": "https://github.com/v1b3x0r/uicp",
     "directory": "packages/adapters/svelte"
   }
 }

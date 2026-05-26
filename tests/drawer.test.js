@@ -1,115 +1,126 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createDrawer } from '@uip/core';
+import { createDrawer } from '@uicp/core';
 
-describe('Drawer', () => {
+describe('Drawer (v0.3 API)', () => {
   let drawer;
-  
+
   beforeEach(() => {
     drawer = createDrawer();
   });
-  
-  it('should create drawer with initial state closed', () => {
+
+  it('initial state is closed', () => {
     expect(drawer.isOpen).toBe(false);
-    expect(drawer.getState().isOpen).toBe(false);
+    expect(drawer.get('value.isOpen')).toBe(false);
   });
-  
-  it('should create drawer with initial state open when specified', () => {
-    const openDrawer = createDrawer({ initialOpen: true });
-    expect(openDrawer.isOpen).toBe(true);
-    expect(openDrawer.getState().isOpen).toBe(true);
+
+  it('initial state can be set open via initialOpen', () => {
+    const open = createDrawer({ initialOpen: true });
+    expect(open.isOpen).toBe(true);
+    expect(open.get('value.isOpen')).toBe(true);
   });
-  
-  it('should open drawer', () => {
+
+  it('open() sets isOpen=true', () => {
     drawer.open();
     expect(drawer.isOpen).toBe(true);
   });
-  
-  it('should close drawer', () => {
+
+  it('close() sets isOpen=false', () => {
     drawer.open();
     drawer.close();
     expect(drawer.isOpen).toBe(false);
   });
-  
-  it('should toggle drawer state', () => {
+
+  it('toggle() flips isOpen', () => {
     expect(drawer.isOpen).toBe(false);
-    
     drawer.toggle();
     expect(drawer.isOpen).toBe(true);
-    
     drawer.toggle();
     expect(drawer.isOpen).toBe(false);
   });
-  
-  it('should not change state when opening already open drawer', () => {
+
+  it('open() on already-open drawer is a no-op', () => {
     drawer.open();
-    const firstState = drawer.isOpen;
+    const onOpen = vi.fn();
+    drawer.on('openStart', onOpen);
     drawer.open();
-    expect(drawer.isOpen).toBe(firstState);
+    expect(onOpen).not.toHaveBeenCalled();
   });
-  
-  it('should not change state when closing already closed drawer', () => {
+
+  it('close() on already-closed drawer is a no-op', () => {
     expect(drawer.isOpen).toBe(false);
+    const onClose = vi.fn();
+    drawer.on('closeStart', onClose);
     drawer.close();
-    expect(drawer.isOpen).toBe(false);
+    expect(onClose).not.toHaveBeenCalled();
   });
-  
-  it('should call onChange listener when state changes', () => {
-    const onChange = vi.fn();
-    const cleanup = drawer.onChange(onChange);
-    
+
+  it('valueChange fires on open/close (nested-path emit)', () => {
+    const onValueChange = vi.fn();
+    const off = drawer.on('valueChange', onValueChange);
+
     drawer.open();
-    expect(onChange).toHaveBeenCalledWith({ isOpen: true });
-    
+    expect(onValueChange).toHaveBeenCalled();
+    const firstCall = onValueChange.mock.calls[0][0];
+    expect(firstCall.value.isOpen).toBe(true);
+
     drawer.close();
-    expect(onChange).toHaveBeenCalledWith({ isOpen: false });
-    
-    cleanup();
+    const lastCall = onValueChange.mock.calls.at(-1)[0];
+    expect(lastCall.value.isOpen).toBe(false);
+
+    off();
+    onValueChange.mockClear();
     drawer.open();
-    expect(onChange).toHaveBeenCalledTimes(2);
+    expect(onValueChange).not.toHaveBeenCalled();
   });
-  
-  it('should call lifecycle events', () => {
-    const onOpenStart = vi.fn();
-    const onOpenEnd = vi.fn();
-    const onCloseStart = vi.fn();
-    const onCloseEnd = vi.fn();
-    
-    drawer.onOpenStart(onOpenStart);
-    drawer.onOpenEnd(onOpenEnd);
-    drawer.onCloseStart(onCloseStart);
-    drawer.onCloseEnd(onCloseEnd);
-    
+
+  it('lifecycle events fire in order', () => {
+    const events = [];
+    drawer.on('openStart', () => events.push('openStart'));
+    drawer.on('openEnd', () => events.push('openEnd'));
+    drawer.on('closeStart', () => events.push('closeStart'));
+    drawer.on('closeEnd', () => events.push('closeEnd'));
+
     drawer.open();
-    expect(onOpenStart).toHaveBeenCalledWith({ isOpen: true });
-    
-    drawer.close();
-    expect(onCloseStart).toHaveBeenCalledWith({ isOpen: false });
+    return new Promise(resolve => queueMicrotask(() => {
+      expect(events).toEqual(['openStart', 'openEnd']);
+      drawer.close();
+      queueMicrotask(() => {
+        expect(events).toEqual(['openStart', 'openEnd', 'closeStart', 'closeEnd']);
+        resolve();
+      });
+    }));
   });
-  
-  it('should handle multiple listeners', () => {
-    const listener1 = vi.fn();
-    const listener2 = vi.fn();
-    
-    drawer.onChange(listener1);
-    drawer.onChange(listener2);
-    
+
+  it('multiple valueChange listeners all fire', () => {
+    const a = vi.fn();
+    const b = vi.fn();
+    drawer.on('valueChange', a);
+    drawer.on('valueChange', b);
     drawer.open();
-    
-    expect(listener1).toHaveBeenCalledWith({ isOpen: true });
-    expect(listener2).toHaveBeenCalledWith({ isOpen: true });
+    expect(a).toHaveBeenCalledTimes(1);
+    expect(b).toHaveBeenCalledTimes(1);
   });
-  
-  it('should cleanup listeners properly', () => {
-    const listener1 = vi.fn();
-    const listener2 = vi.fn();
-    
-    const cleanup1 = drawer.onChange(listener1);
-    drawer.onChange(listener2);
-    
-    cleanup1();
+
+  it('returned unsubscribe removes specific listener only', () => {
+    const a = vi.fn();
+    const b = vi.fn();
+    const offA = drawer.on('valueChange', a);
+    drawer.on('valueChange', b);
+
+    offA();
     drawer.open();
-    
-    expect(listener1).not.toHaveBeenCalled();
-    expect(listener2).toHaveBeenCalledWith({ isOpen: true });
+    expect(a).not.toHaveBeenCalled();
+    expect(b).toHaveBeenCalledTimes(1);
+  });
+
+  it('default position is left, size 320', () => {
+    expect(drawer.get('value.position')).toBe('left');
+    expect(drawer.get('value.size')).toBe(320);
+  });
+
+  it('custom position is preserved', () => {
+    const bottom = createDrawer({ position: 'bottom', size: '70vh' });
+    expect(bottom.get('value.position')).toBe('bottom');
+    expect(bottom.get('value.size')).toBe('70vh');
   });
 });

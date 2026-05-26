@@ -1,5 +1,5 @@
 /**
- * @uip/plugin-direction - Directional Positioning Plugin
+ * @uicp/plugin-direction - Directional Positioning Plugin
  * Handles drawer positioning (left, right, top, bottom) with smooth animations
  */
 

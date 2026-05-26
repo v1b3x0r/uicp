@@ -1,443 +1,178 @@
-# Universal UI Context Protocol
+# Universal UI Context Protocol (uicp)
 
-> **Build once, use everywhere.** A revolutionary protocol for creating truly universal UI primitives.
+> Headless drawer / sheet / nav primitives for vanilla JS and Svelte. State + transitions + gestures only — you own all the CSS.
 
-[![Version](https://img.shields.io/npm/v/@uicp/core?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@uicp/core)
-[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@uicp/core?style=flat&colorA=000000&colorB=000000)](https://bundlephobia.com/package/@uicp/core)
-[![License](https://img.shields.io/npm/l/@uicp/core?style=flat&colorA=000000&colorB=000000)](https://github.com/universal-ui-protocol/uicp/blob/main/LICENSE)
+[![npm](https://img.shields.io/npm/v/@uicp/core?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@uicp/core)
+[![License](https://img.shields.io/npm/l/@uicp/core?style=flat&colorA=000000&colorB=000000)](https://github.com/v1b3x0r/uicp/blob/main/LICENSE)
 
-## What is uicp?
+## Why uicp
 
-**Universal UI Context Protocol** treats user interfaces as **standardized protocols** rather than components. Instead of building framework-specific components, you create universal primitives that work everywhere.
+Most headless UI libraries are framework-locked: Radix is React-only (~45 KB), Headless UI ships React/Vue forks (~35 KB), Vaul is fantastic but needs React or Svelte. If you're shipping a marketing page, a static site, or a tiny widget where pulling in a framework is too much, your options thin out.
 
-**🎯 Core Philosophy**: `UI = State + Transitions + Interactions`
+uicp is for that niche:
 
-Every user interface can be reduced to these three fundamental concepts:
-- **State** - Reactive data that defines the current condition
-- **Transitions** - How state changes over time with animations  
-- **Interactions** - How users manipulate state through gestures and input
+- **Vanilla JS first.** ~8 KB brotlied total (core + adapter + gesture) — works without any framework runtime.
+- **Truly headless.** The adapter sets `data-uip-open`, `aria-hidden`, and class hooks. You write every line of CSS. Edge-to-edge bottom sheet, iOS-17 floating inset sheet, side nav, whatever — it's just CSS.
+- **Native gesture feel.** Touch drag-to-close, velocity-aware, focus trap, scroll lock, Escape to close — built in.
 
-## Why uicp?
+## Install
 
-### The Problem
-```javascript
-// Today: Framework lock-in and duplicate effort
-<RadixModal />        // React only, 45KB
-<HeadlessModal />     // React/Vue only, 35KB  
-<ArcoModal />         // Framework-specific, 200KB+
-```
-
-### The Solution
-```javascript
-// uicp: Universal primitives, 3KB total
-const modal = createModal();   // Works everywhere
-modal.open();                  // Same API always
-```
-
-### Key Benefits
-
-- **🌐 Universal**: Same API across React, Vue, Svelte, vanilla JS
-- **📦 Tiny**: 3KB core + 1-2KB plugins vs 45KB+ for alternatives  
-- **🎨 Headless**: You control styling and presentation completely
-- **🔌 Extensible**: Plugin system for advanced behaviors
-- **📱 Accessible**: WCAG 2.1 AA compliance built-in
-- **⚡ Fast**: Optimized for performance and memory efficiency
-
-## Quick Start
-
-### Install Core
 ```bash
-npm install @uicp/core
+npm install @uicp/core @uicp/adapter-vanilla
+# optional:
+npm install @uicp/plugin-gesture
 ```
 
-### Basic Usage
-```javascript
-import { createDrawer } from '@uicp/core';
+## Vanilla JS
 
-// Create primitive
-const drawer = createDrawer();
+```html
+<button id="open">Open</button>
 
-// Control state
-drawer.open();
-drawer.close();
-drawer.toggle();
+<div id="sheet" data-uip-type="drawer" data-uip-position="bottom">
+  <p>Sheet content</p>
+  <button data-close>Close</button>
+</div>
+<div data-backdrop-for="sheet"></div>
 
-// Listen to changes
-drawer.on('change', ({ isOpen }) => {
-  console.log('Drawer is', isOpen ? 'open' : 'closed');
-});
+<style>
+  [data-uip-type="drawer"][data-uip-position="bottom"] {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    transform: translateY(100%);
+    transition: transform 320ms cubic-bezier(.32, .72, 0, 1);
+  }
+  [data-uip-type="drawer"][data-uip-open="true"] {
+    transform: translateY(0);
+  }
+  [data-backdrop-for] {
+    position: fixed; inset: 0;
+    background: rgb(0 0 0 / 0.5);
+    opacity: 0; visibility: hidden;
+    transition: opacity 320ms ease, visibility 320ms ease;
+  }
+  [data-backdrop-for].uip-backdrop-open {
+    opacity: 1; visibility: visible;
+  }
+</style>
+
+<script type="module">
+  import { drawerWithGestures } from '@uicp/adapter-vanilla';
+
+  const sheet = drawerWithGestures('#sheet', { position: 'bottom' });
+  document.getElementById('open').onclick = () => sheet.open();
+  document.querySelector('[data-close]').onclick = () => sheet.close();
+  document.querySelector('[data-backdrop-for="sheet"]').onclick = () => sheet.close();
+</script>
 ```
 
-### With Framework Integration
+That's it. Three CSS rules per position, the adapter handles state.
 
-#### React (Hooks)
-```javascript
-import { useDrawer } from '@uicp/adapter-react';
+### Floating iOS-17 style
 
-function MyDrawer() {
-  const [drawer, { open, close, toggle }] = useDrawer();
-  
-  return (
-    <div>
-      <button onClick={open}>Open Drawer</button>
-      <div className={drawer.isOpen ? 'open' : 'closed'}>
-        Drawer content
-      </div>
-    </div>
-  );
+Same JS. Different CSS:
+
+```css
+[data-uip-type="drawer"][data-uip-position="bottom"] {
+  position: fixed;
+  left: 8px; right: 8px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  border-radius: 24px;
+  transform: translateY(calc(100% + 16px));
+  transition: transform 380ms cubic-bezier(.32, .72, 0, 1);
 }
 ```
 
-#### Svelte (Stores)
+See `examples/tiny-html/` (edge-to-edge) and `examples/homelog-gatepass/` (floating wallet-style).
+
+## Svelte
+
 ```svelte
 <script>
   import { createDrawerStore } from '@uicp/adapter-svelte';
-  
-  const drawer = createDrawerStore();
+  const drawer = createDrawerStore({ position: 'bottom' });
 </script>
 
-<button on:click={() => drawer.open()}>Open Drawer</button>
+<button on:click={() => drawer.open()}>Open</button>
 
-<div class:open={$drawer.isOpen}>
-  Drawer content
+<div use:drawer.action data-uip-type="drawer" data-uip-position="bottom">
+  <p>Content</p>
 </div>
 ```
 
-#### Vue (Composables)
-```vue
-<template>
-  <div>
-    <button @click="open">Open Drawer</button>
-    <div :class="{ open: drawer.isOpen }">
-      Drawer content
-    </div>
-  </div>
-</template>
+## State hooks
 
-<script setup>
-import { useDrawer } from '@uicp/adapter-vue';
+The adapter sets these on the drawer element:
 
-const { drawer, open, close, toggle } = useDrawer();
-</script>
-```
+| Hook | Values |
+|---|---|
+| `data-uip-type` | `"drawer"` |
+| `data-uip-position` | `"left" / "right" / "top" / "bottom"` |
+| `data-uip-open` | `"true" / "false"` |
+| `aria-hidden` | `"true" / "false"` |
+| class | `.uip-open` / `.uip-closed` |
 
-## Universal Primitives
+On the backdrop element (`[data-backdrop-for="<drawer-id>"]`):
 
-uicp includes 5 fundamental primitives that cover 90% of UI patterns:
+| Hook | Values |
+|---|---|
+| class | `.uip-backdrop-open` (added when drawer is open) |
+| `data-uip-open` | `"true" / "false"` |
 
-| Primitive | Purpose | State | Use Cases |
-|-----------|---------|-------|-----------|
-| **Drawer** | Sliding panels | `{ isOpen, position, size }` | Navigation, filters, settings |
-| **Modal** | Overlay dialogs | `{ isOpen, level }` | Confirmations, forms, lightboxes |
-| **Tooltip** | Contextual info | `{ isVisible, content, position }` | Help text, status indicators |
-| **Popover** | Rich floating content | `{ isOpen, anchor, placement }` | Dropdowns, pickers, menus |
-| **Menu** | Context menus | `{ isOpen, selected, items }` | Right-click, dropdown navigation |
+## API
 
-### Consistent API Pattern
-Every primitive follows the exact same pattern:
-
-```javascript
-const primitive = createPrimitive(options);
-
-// State access
-primitive.isOpen                    // Current state
-primitive.get('value')              // Get any state property
-primitive.set('value', newValue)    // Set any state property
-
-// Actions  
-primitive.open()                    // Open/show primitive
-primitive.close()                   // Close/hide primitive  
-primitive.toggle()                  // Toggle state
-
-// Events
-primitive.on('change', callback)    // State changes
-primitive.on('open', callback)      // Opening events
-primitive.on('close', callback)     // Closing events
-
-// DOM Integration
-primitive.registerTrigger(element)  // Button/trigger
-primitive.registerContent(element)  // Content/panel
-```
-
-## Plugin System
-
-Extend primitives with universal plugins that work across all compatible types:
-
-### Gesture Plugin
-```javascript
-import { gesturePlugin } from '@uicp/plugin-gesture';
-
-const drawer = createDrawer()
-  .use(gesturePlugin({ 
-    axis: 'x',           // Horizontal swipe
-    threshold: 0.3       // 30% to trigger
-  }));
-```
-
-### Animation Plugin
-```javascript
-import { animatePlugin } from '@uicp/plugin-animate';
-
-const modal = createModal()
-  .use(animatePlugin({
-    duration: 300,
-    easing: 'spring',
-    physics: true
-  }));
-```
-
-### Persistence Plugin
-```javascript
-import { persistPlugin } from '@uicp/plugin-persist';
-
-const drawer = createDrawer()
-  .use(persistPlugin('drawer-state')); // Auto-save to localStorage
-```
-
-### Plugin Composition
-```javascript
-// Complex drawer with all enhancements
-const drawer = createDrawer()
-  .use(gesturePlugin({ axis: 'x' }))
-  .use(animatePlugin({ spring: true }))
-  .use(persistPlugin('nav-drawer'))
-  .use(a11yPlugin());                 // Accessibility enhancements
-```
-
-## Advanced Examples
-
-### Tabs with Drag-to-Select
-```javascript
-import { createTabs, gesturePlugin } from '@uicp/core';
-
-const tabs = createTabs({
-  items: ['Home', 'About', 'Contact'],
-  activeIndex: 0
+```js
+const drawer = drawerWithGestures('#my-drawer', {
+  position: 'bottom',  // 'left' | 'right' | 'top' | 'bottom'
+  size: 320,           // hint — only used by gesture math
+  initialOpen: false,
+  gestures: true       // default true
 });
 
-tabs.use(gesturePlugin({
-  mode: 'drag-to-select',
-  preview: true,        // Show preview while dragging
-  magnetize: true       // Snap to nearest tab
-}));
-
-// React to selection changes
-tabs.on('change', ({ activeIndex, activeItem }) => {
-  updateTabIndicator(activeIndex);
-  loadTabContent(activeItem);
-});
+drawer.open();
+drawer.close();
+drawer.toggle();
+drawer.primitive.on('valueChange', ({ value }) => console.log(value.isOpen));
+drawer.destroy();
 ```
 
-### Drawer with Physics
-```javascript
-import { createDrawer, gesturePlugin, physicsPlugin } from '@uicp/core';
+## Scope (honest)
 
-const drawer = createDrawer({ position: 'left', size: 320 })
-  .use(gesturePlugin({ 
-    axis: 'x',
-    momentum: true
-  }))
-  .use(physicsPlugin({
-    spring: { tension: 300, friction: 40 },
-    boundaries: { min: 0, max: 320 },
-    magneticPoints: [0, 160, 320]  // Snap points
-  }));
-```
+**Shipped & tested:**
+- `@uicp/core` — drawer, modal, tooltip, popover, menu primitives (state machines)
+- `@uicp/adapter-vanilla` — drawer + gesture for vanilla JS
+- `@uicp/adapter-svelte` — drawer + gesture for Svelte
+- `@uicp/plugin-gesture` — touch drag-to-close
+- `@uicp/plugin-snap` — snap points
+- `@uicp/plugin-direction` — RTL/LTR
 
-### Multi-Level Modals
-```javascript
-const modals = {
-  confirm: createModal({ level: 1 }),
-  details: createModal({ level: 2 }),
-  help: createModal({ level: 3 })
-};
+**Not yet:**
+- React adapter (planned, not shipped)
+- Vue adapter (planned, not shipped)
+- Animation plugin with physics (in progress)
+- Real modal/popover/tooltip/menu wrappers in vanilla adapter (currently only drawer is wired end-to-end)
 
-// Automatic z-index management
-modals.confirm.open();    // z-index: 1000
-modals.details.open();    // z-index: 1001  
-modals.help.open();       // z-index: 1002
-```
+## Bundle size
 
-## Framework Adapters
+Measured against the vanilla adapter built dist (raw, brotlied):
 
-### Installation
+| Package | Brotlied | Raw |
+|---|---|---|
+| `@uicp/core` | 4.35 KB | 49 KB |
+| `@uicp/adapter-vanilla` | ~3.4 KB | 8.6 KB |
+| `@uicp/plugin-gesture` | 1.13 KB | 7.5 KB |
+| `@uicp/plugin-snap` | 982 B | 3.5 KB |
 
-```bash
-# Choose your framework adapter
-npm install @uicp/adapter-react    # React hooks
-npm install @uicp/adapter-vue      # Vue composables  
-npm install @uicp/adapter-svelte   # Svelte stores
-npm install @uicp/adapter-vanilla  # Vanilla JS helpers
-```
+Total typical setup (core + vanilla + gesture): **~8.9 KB brotlied**.
 
-### Adapter Features
+## Status
 
-| Feature | React | Vue | Svelte | Vanilla |
-|---------|-------|-----|--------|---------|
-| **State Integration** | Hooks | Composables | Stores | Reactive Objects |
-| **Automatic Cleanup** | ✅ | ✅ | ✅ | Manual |
-| **SSR Support** | ✅ | ✅ | ✅ | N/A |
-| **DevTools** | ✅ | ✅ | ✅ | Basic |
-| **TypeScript** | ✅ | ✅ | ✅ | ✅ |
+v0.4.0 — first real npm release. Architecture is stable, drawer end-to-end works in vanilla + svelte. Modal/popover/tooltip/menu primitives exist in core but aren't wired in the vanilla adapter yet. Treat that as the "not for production" boundary until they ship dedicated adapter wrappers.
 
-## Bundle Size Comparison
-
-uicp delivers more functionality with dramatically smaller bundles:
-
-| Library | Bundle Size | Features |
-|---------|-------------|----------|
-| **uicp Core** | 3 KB | 5 primitives + state management |
-| **uicp + Gestures** | 5 KB | Core + touch/mouse interactions |
-| **uicp Full Setup** | 8 KB | Core + plugins + adapter |
-| | |
-| Radix UI | 45 KB | React-only components |
-| Headless UI | 35 KB | React/Vue components |  
-| Arco Design | 200+ KB | Full component library |
-
-## Performance
-
-uicp is built for performance from the ground up:
-
-- **State Updates**: <1ms per update
-- **Event Emission**: <0.1ms per event  
-- **Memory Usage**: <100KB per primitive instance
-- **Animation**: 60fps on modern devices
-- **Bundle**: Tree-shakeable, only import what you use
-
-## Accessibility
-
-All primitives include comprehensive accessibility features:
-
-- **ARIA Support**: Automatic `aria-*` attributes
-- **Keyboard Navigation**: Full keyboard support
-- **Focus Management**: Intelligent focus trapping and restoration
-- **Screen Readers**: Proper announcements and semantic markup
-- **Reduced Motion**: Respects user motion preferences
-- **WCAG 2.1 AA**: Full compliance out of the box
-
-## Browser Support
-
-- **Modern Browsers**: Chrome, Firefox, Safari, Edge (last 2 versions)
-- **Mobile**: iOS Safari 14+, Chrome Mobile
-- **Features**: ES2020+ (optional chaining, nullish coalescing)
-- **Polyfills**: Not required for target browsers
-
-## TypeScript
-
-Full TypeScript support with intelligent type inference:
-
-```typescript
-import type { DrawerInstance } from '@uicp/core';
-
-const drawer: DrawerInstance = createDrawer({
-  position: 'left'  // Type: 'left' | 'right' | 'top' | 'bottom'
-});
-
-drawer.set('value.isOpen', true);       // ✅ Valid
-drawer.set('value.invalid', true);     // ❌ TypeScript error
-```
-
-## Development
-
-### Local Development
-```bash
-# Clone repository
-git clone https://github.com/universal-ui-protocol/uicp
-cd uicp
-
-# Install dependencies  
-npm install
-
-# Start development server
-npm run dev
-
-# Run tests
-npm test
-
-# Check bundle sizes
-npm run size
-```
-
-### Package Scripts
-```bash
-npm run build          # Build all packages
-npm run dev:vanilla     # World-class single-file example (9/9 tests)
-npm run dev:svelte      # Svelte examples  
-npm test               # Run test suite
-npm run lint           # Lint code
-npm run type-check     # TypeScript checking
-```
-
-## Roadmap
-
-### Current: v0.x (Pre-Release)
-- [x] Core protocol implementation
-- [x] 5 basic primitives (Drawer, Modal, Tooltip, Popover, Menu)
-- [x] Plugin system with gesture support
-- [x] World-class vanilla JS adapter (single-file, 9/9 tests passing)
-- [x] Svelte adapter with store integration
-- [ ] Animation plugin with physics
-- [ ] React and Vue adapters
-
-### v0.4-0.6: Framework Expansion
-- [ ] React adapter with hooks
-- [ ] Vue adapter with composables  
-- [ ] Solid adapter with signals
-- [ ] Web Components support
-
-### v0.7-0.8: Advanced Primitives
-- [ ] Tabs with drag-to-select
-- [ ] Slider with multi-handle support
-- [ ] Select with virtual scrolling
-- [ ] Date picker components
-
-### v1.0: Production Ready
-- [ ] Stable API with semantic versioning
-- [ ] Comprehensive documentation
-- [ ] Performance optimizations
-- [ ] Developer tools and debugging
-
-## Community
-
-- **GitHub**: [universal-ui-protocol/uicp](https://github.com/universal-ui-protocol/uicp)
-- **Discord**: [Join our community](https://discord.gg/uicp)
-- **Twitter**: [@Universaluicprotocol](https://twitter.com/Universaluicprotocol)
-
-## Contributing
-
-We welcome contributions! See our [Contributing Guide](./CONTRIBUTING.md) for details on:
-
-- How to set up the development environment
-- Our code style and conventions  
-- How to submit pull requests
-- How to report bugs and request features
+Breaking changes between v0.3.x and v0.4.0:
+- Package scope renamed `@uip/*` → `@uicp/*`
+- Adapter no longer auto-injects position styles. Drawers need CSS for position/transform/transition (one block per position direction, see usage above).
+- Backdrop class changed: `.show` → `.uip-backdrop-open`
+- Drawer class changed: `.open` / `.closed` → `.uip-open` / `.uip-closed`
 
 ## License
 
-MIT © [Universal UI Context Protocol](https://github.com/universal-ui-protocol/uicp)
-
----
-
-## Why Protocol > Components?
-
-Traditional UI libraries provide **components** - pre-built solutions that work in specific frameworks:
-
-```javascript
-// Component approach: Framework-specific, large bundles
-<RadixDrawer />     // React only, includes styling logic
-<HeadlessDrawer />  // Limited framework support
-<ChakraDrawer />    // Full design system overhead
-```
-
-uicp provides **protocols** - universal patterns that work everywhere:
-
-```javascript
-// Protocol approach: Universal, minimal, flexible
-const drawer = createDrawer();  // Works in any framework
-drawer.open();                  // Consistent API everywhere
-// You control all styling and presentation
-```
-
-**The result**: Maximum flexibility, minimum bundle size, zero vendor lock-in.
-
-**Universal UI Context Protocol**: One core, infinite possibilities. 🚀
+MIT — see LICENSE.

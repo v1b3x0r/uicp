@@ -5,12 +5,34 @@ All notable changes to Universal UI Protocol will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2026-05-26
 
-### Added
-- Animation plugin with spring physics (in development)
-- React adapter with hooks integration (in development)
-- Comprehensive TypeScript definitions (in development)
+### 🎉 First real npm release as `@uicp/*` scope
+
+#### BREAKING
+- **Package scope renamed** `@uip/*` → `@uicp/*`. Folder name, repo, badges, and docs were all already "uicp"; package names are now consistent.
+- **Adapter is now truly headless.** Removed all auto-injected inline styles (`POSITION_STYLES`, `OPEN_TRANSFORMS`, `CLOSED_TRANSFORMS`, `injectPositionStyles`). The user provides CSS for position, transform, and transition; the adapter only sets data-attrs and class hooks.
+- **Class hook names** `.open` / `.closed` → `.uip-open` / `.uip-closed`
+- **Backdrop class** `.show` → `.uip-backdrop-open`
+- **Removed misleading aliases** in vanilla adapter: `export { drawer as modal, drawer as popover }`. Modal/popover need real implementations (TODO for v0.4.x).
+
+#### Fixed
+- **Core: `valueChange` event was silently dropped for nested-path sets.** `UIPrimitive.set('value.isOpen', true)` mutated the inner object directly, bypassing the outer Proxy's set trap. The adapter listens to `valueChange`, so the DOM never synced after `drawer.open()`. Fix: `set()` now manually invokes `_handleStateChange` for nested paths. This was the latent bug that made the adapter appear broken end-to-end despite tests passing.
+- **Adapter: closed transform was `''`.** When `isOpen=false`, the adapter set inline `transform: ''` (empty), removing the closed-position transform and showing the drawer at its natural position. Moot now that auto-injection is gone, but worth noting if reverting.
+- **Drawer z-index** explicit `z-index: 50` in demo CSS to prevent stacking under backdrop in some compositors.
+
+#### Tests
+- 16/18 passing (2 skipped pending real browser focus/layout behavior — happy-dom limitation).
+- Tests migrated from v0.2 `onChange` API to v0.3 `on('valueChange')`.
+
+#### Honesty pass
+- Removed aspirational README claims for React/Vue/Solid adapters (don't exist).
+- Removed fake Discord/Twitter community links.
+- Replaced `author: "Your Name"` and `repo: yourusername/uip` placeholders.
+
+#### Examples
+- New `examples/tiny-html/` — 3-direction drawer smoke demo (~8.9 KB brotlied total).
+- New `examples/homelog-gatepass/` — iOS-17 floating-sheet wallet UX scenario.
 
 ## [0.3.0] - 2025-08-19
 

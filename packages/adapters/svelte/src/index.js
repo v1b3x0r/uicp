@@ -1,5 +1,5 @@
 /**
- * @uip/adapter-svelte – Svelte adapter (generic, scalable)
+ * @uicp/adapter-svelte – Svelte adapter (generic, scalable)
  * Pattern: one generic factory + per-primitive aliases
  */
 
@@ -12,7 +12,7 @@ import {
   createTooltip,
   createPopover,
   createMenu,
-} from '@uip/core'
+} from '@uicp/core'
 
 // ---------------------------
 // Generic store (เขียนครั้งเดียว)
@@ -175,4 +175,4 @@ export {
   createTooltip,
   createPopover,
   createMenu,
-} from '@uip/core'
+} from '@uicp/core'

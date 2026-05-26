@@ -1,5 +1,5 @@
 /**
- * @uip/core - Universal UI Protocol Core (v0.x)
+ * @uicp/core - Universal UI Protocol Core (v0.x)
  * Framework-agnostic UI primitives with accessibility built-in
  */
 

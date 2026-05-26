@@ -1,6 +1,6 @@
 {
-  "name": "@uip/plugin-direction",
-  "version": "2.0.0",
+  "name": "@uicp/plugin-direction",
+  "version": "0.4.0",
   "description": "Direction positioning plugin for Universal UI Protocol",
   "type": "module",
   "main": "dist/index.js",
@@ -23,9 +23,9 @@
     "plugin",
     "universal"
   ],
-  "author": "UIP Team",
+  "author": "v1b3x0r <natthawut.plbc@gmail.com>",
   "license": "MIT",
   "peerDependencies": {
-    "@uip/core": "^2.0.0"
+    "@uicp/core": "^0.4.0"
   }
 }

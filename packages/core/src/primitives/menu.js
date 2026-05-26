@@ -1,5 +1,5 @@
 /**
- * @uip/core - Menu Primitive (Protocol v0.x)
+ * @uicp/core - Menu Primitive (Protocol v0.x)
  * Context menu with keyboard navigation implementing Universal UI Protocol
  */
 

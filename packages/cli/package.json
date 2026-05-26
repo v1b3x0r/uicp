@@ -1,10 +1,11 @@
 {
-  "name": "@uip/cli",
-  "version": "1.0.0",
-  "description": "CLI tool for Universal UI Protocol",
+  "name": "@uicp/cli",
+  "version": "0.4.0",
+  "private": true,
+  "description": "CLI tool for Universal UI Protocol (not yet ready for publish)",
   "type": "module",
   "bin": {
-    "uip": "./src/index.js"
+    "uip": "src/index.js"
   },
   "files": [
     "src",

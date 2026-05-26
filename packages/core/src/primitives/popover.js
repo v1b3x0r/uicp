@@ -1,5 +1,5 @@
 /**
- * @uip/core - Popover Primitive (Protocol v0.x)
+ * @uicp/core - Popover Primitive (Protocol v0.x)
  * Click-triggered floating content implementing Universal UI Protocol
  */
 

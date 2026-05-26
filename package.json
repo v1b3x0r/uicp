@@ -1,6 +1,6 @@
 {
-  "name": "@uip/monorepo",
-  "version": "2.0.0",
+  "name": "@uicp/monorepo",
+  "version": "0.4.0",
   "private": true,
   "description": "Universal UI Protocol - Lean, cross-framework UI primitives",
   "type": "module",
@@ -9,7 +9,7 @@
     "build:core": "cd packages/core && npm run build",
     "build:plugins": "cd packages/plugins/gesture && npm run build && cd ../direction && npm run build && cd ../snap && npm run build",
     "build:adapters": "npm run build:adapter-svelte && npm run build:adapter-vanilla",
-    "build:adapter-svelte": "cd packages/adapters/svelte && npm run build", 
+    "build:adapter-svelte": "cd packages/adapters/svelte && npm run build",
     "build:adapter-vanilla": "cd packages/adapters/vanilla && npm run build",
     "dev:vanilla": "cd examples/vanilla && npm run dev",
     "dev:svelte": "cd examples/svelte && npm run dev",
@@ -21,7 +21,7 @@
   },
   "workspaces": [
     "packages/core",
-    "packages/plugins/*", 
+    "packages/plugins/*",
     "packages/adapters/*",
     "packages/skins/*",
     "examples/*"
@@ -39,40 +39,35 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/uip"
+    "url": "git+https://github.com/v1b3x0r/uicp.git"
   },
   "size-limit": [
     {
       "path": "packages/core/dist/index.js",
       "limit": "5 KB",
-      "name": "@uip/core"
+      "name": "@uicp/core"
     },
     {
       "path": "packages/adapters/vanilla/dist/index.js",
-      "limit": "1 KB",
-      "name": "@uip/adapter-vanilla"
+      "limit": "4 KB",
+      "name": "@uicp/adapter-vanilla"
     },
     {
       "path": "packages/adapters/svelte/dist/index.js",
-      "limit": "1 KB",
-      "name": "@uip/adapter-svelte"
+      "limit": "16 KB",
+      "name": "@uicp/adapter-svelte"
     },
     {
       "path": "packages/plugins/gesture/dist/index.js",
       "limit": "2 KB",
-      "name": "@uip/plugin-gesture"
-    },
-    {
-      "path": "packages/plugins/position/dist/index.js",
-      "limit": "2 KB",
-      "name": "@uip/plugin-position"
+      "name": "@uicp/plugin-gesture"
     },
     {
       "path": "packages/plugins/snap/dist/index.js",
       "limit": "1.5 KB",
-      "name": "@uip/plugin-snap"
+      "name": "@uicp/plugin-snap"
     }
   ],
   "license": "MIT",
-  "author": "Your Name"
+  "author": "v1b3x0r <natthawut.plbc@gmail.com>"
 }

@@ -1,5 +1,5 @@
 /**
- * @uip/plugin-gesture - Universal Touch & Mouse Gestures
+ * @uicp/plugin-gesture - Universal Touch & Mouse Gestures
  * Smooth drag interactions for all UI primitives
  */
 

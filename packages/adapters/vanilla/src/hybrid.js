@@ -1,72 +1,28 @@
 /**
- * @uip/adapter-vanilla - Hybrid Universal UI Adapter
- * Zero-config, progressive enhancement, plugin-ready
+ * @uicp/adapter-vanilla — Headless UI Protocol adapter for vanilla JS
+ *
+ * State machine binder only. Sets data-attrs + classes; never inline styles.
+ * You provide all CSS (position, transform, transition, layout).
+ *
+ * Data hooks on the element:
+ *   data-uip-type="drawer"
+ *   data-uip-position="left|right|top|bottom"
+ *   data-uip-open="true|false"
+ *   aria-hidden="true|false"
+ *   class .uip-open / .uip-closed
+ *
+ * Backdrop (optional): provide an element with [data-backdrop-for="<drawer-id>"];
+ * adapter toggles .uip-backdrop-open on it.
  */
 
-import { createDrawer, createModal, createTooltip, createPopover, createMenu } from '@uip/core';
+import { createDrawer } from '@uicp/core';
 
 /**
- * Position-based CSS injection system
+ * Tag element with type + position for CSS targeting. No inline styles.
  */
-const POSITION_STYLES = {
-  drawer: {
-    left: {
-      position: 'fixed',
-      left: '0',
-      top: '0',
-      height: '100vh',
-      transform: 'translateX(-100%)',
-      transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-    },
-    right: {
-      position: 'fixed', 
-      right: '0',
-      top: '0',
-      height: '100vh',
-      transform: 'translateX(100%)',
-      transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-    },
-    top: {
-      position: 'fixed',
-      left: '0',
-      right: '0', 
-      top: '0',
-      transform: 'translateY(-100%)',
-      transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-    },
-    bottom: {
-      position: 'fixed',
-      left: '0',
-      right: '0',
-      bottom: '0',
-      transform: 'translateY(100%)',
-      transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-    }
-  }
-};
-
-const OPEN_TRANSFORMS = {
-  left: 'translateX(0)',
-  right: 'translateX(0)', 
-  top: 'translateY(0)',
-  bottom: 'translateY(0)'
-};
-
-/**
- * Auto-inject CSS styles for position-based layouts
- */
-function injectPositionStyles(element, primitiveType, position) {
-  if (!POSITION_STYLES[primitiveType] || !POSITION_STYLES[primitiveType][position]) {
-    console.warn(`Position "${position}" not supported for ${primitiveType}`);
-    return;
-  }
-
-  const styles = POSITION_STYLES[primitiveType][position];
-  Object.assign(element.style, styles);
-  
-  // Add data attributes for CSS targeting
+function tagElement(element, primitiveType, position) {
   element.setAttribute('data-uip-type', primitiveType);
-  element.setAttribute('data-uip-position', position);
+  if (position) element.setAttribute('data-uip-position', position);
 }
 
 /**
@@ -250,10 +206,8 @@ class UniversalHybridAdapter {
   }
   
   injectCSS() {
-    const primitiveType = this.primitive._type;
-    const position = this.options.position;
-    
-    injectPositionStyles(this.element, primitiveType, position);
+    // True headless: no inline styles. Just tag element for CSS targeting.
+    tagElement(this.element, this.primitive._type, this.options.position);
   }
   
   setupStateSyncing() {
@@ -322,33 +276,22 @@ class UniversalHybridAdapter {
   syncDOMFromState(state = null) {
     const currentState = state || this.primitive.get();
     const isOpen = currentState?.value?.isOpen || false;
-    const position = this.options.position;
-    
-    // Toggle classes
-    this.element.classList.toggle('open', isOpen);
-    this.element.classList.toggle('closed', !isOpen);
-    
-    // Set transform (with !important to override)
-    const transform = isOpen ? OPEN_TRANSFORMS[position] : '';
-    this.element.style.setProperty('transform', transform, 'important');
-    
-    // Update attributes
-    this.element.setAttribute('data-uip-open', isOpen);
-    this.element.setAttribute('aria-hidden', !isOpen);
-    
-    // Handle backdrop if exists
+
+    // State hooks for user CSS. No inline styles, no !important.
+    this.element.classList.toggle('uip-open', isOpen);
+    this.element.classList.toggle('uip-closed', !isOpen);
+    this.element.setAttribute('data-uip-open', String(isOpen));
+    this.element.setAttribute('aria-hidden', String(!isOpen));
+
     this.updateBackdrop(isOpen);
   }
   
   updateBackdrop(isOpen) {
-    // Look for backdrop element
-    const backdrop = document.querySelector(`[data-backdrop-for="${this.element.id}"]`) ||
-                    this.element.parentElement?.querySelector('.backdrop');
-    
-    if (backdrop) {
-      backdrop.classList.toggle('show', isOpen);
-      backdrop.style.display = isOpen ? 'block' : 'none';
-    }
+    const backdrop = document.querySelector(`[data-backdrop-for="${this.element.id}"]`);
+    if (!backdrop) return;
+    // State hook for user CSS. No inline display toggling.
+    backdrop.classList.toggle('uip-backdrop-open', isOpen);
+    backdrop.setAttribute('data-uip-open', String(isOpen));
   }
   
   destroy() {
@@ -435,5 +378,5 @@ export function drawerWithPlugins(selector, plugins = [], options = {}) {
   return result;
 }
 
-// Universal exports for other primitives  
-export { drawer as modal, drawer as popover };
+// Note: real modal/popover/tooltip/menu adapter wrappers are TODO for v0.4.x.
+// Don't add `export { drawer as modal }` aliases — that pattern was misleading.

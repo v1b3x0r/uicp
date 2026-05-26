@@ -1,6 +1,6 @@
 {
-  "name": "@uip/plugin-gesture",
-  "version": "2.0.0",
+  "name": "@uicp/plugin-gesture",
+  "version": "0.4.0",
   "description": "Touch gesture plugin for Universal UI Protocol",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -27,14 +27,14 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@uip/core": "^2.0.0"
+    "@uicp/core": "^0.4.0"
   },
   "devDependencies": {
     "tsup": "^8.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/uip",
+    "url": "https://github.com/v1b3x0r/uicp",
     "directory": "packages/plugins/gesture"
   }
 }

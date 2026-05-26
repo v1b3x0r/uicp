@@ -1,5 +1,5 @@
 /**
- * @uip/core - Modal Primitive (Protocol v0.x)
+ * @uicp/core - Modal Primitive (Protocol v0.x)
  * Overlay dialog implementing Universal UI Protocol
  */
 
